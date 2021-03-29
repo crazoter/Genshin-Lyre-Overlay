@@ -1,2 +1,57 @@
-# Genshin-Lyre-Overlay
-Visual cues to help you play the lyre
+# Genshin Lyre Overlay AKA Venti Sensei
+A Python program that highlights the notes when you play the lyre on Genshin Impact. Comes with an exe to work out of the box for non-programmers.
+
+https://i.imgur.com/VnqTvVv.mp4
+
+Platform: Windows (Code is in Python, can be ported to MacOS)
+
+### How does it work?
+* The application creates a window that overlays all other applications, including Genshin Impact in windowed mode.
+* The application assumes you are running Genshin Impact in a window.
+* Modify the size and spacing of the circles based on your notes keyboard, and move the window such that they overlay the notes keyboard.
+* Input the filepath (filename) of the song you want to play and press play button.
+* The program will highlight the notes to play.
+* After the song has ended, the user can input another filename to play that song.
+
+### How to use the application
+* You can run the main.exe files in either `build/main.exe` or `dist/main.exe`. If you have python 3.7 on your computer, you can just run the script directly using `python3 src/main.py`.
+* 
+### How to add songs & the syntax
+* Include your file containing the song in the same directory as the application.
+* I have included an example song `song.txt` in the directory for reference.
+* The syntax of the files are as follows (I'm not musically trained so bear with me):
+  * 1st line: Name of the song to be displayed on screen
+  * 2rd line onwards: Each line denotes a new entry. Each entry is:
+  * {Keys to press}{1 whitespace}{number of milliseconds to the next entry}
+    * Note that the keys to press must not have any whitespace between them.
+    * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
+
+### Visual Cues
+* As the notes are placed in a compact fashion in-game, I decided to make the visual cues akin to an expanding circle from the centre of the button, like the exact opposite of the Windblume mini-game where they converge onto the button:
+  * When the edge of the circle touches the edge of the button, that is when you want to play the note.
+  * Held notes don't apply to the lyre, so the feature is not included.
+
+### Will I get banned by using this application?
+* This has a few advantages over a macro:
+  * The application does not detect or interact with the Genshin Impact window.
+  * The application does not perform or detect any keypresses; the player is still in full control of the lyre.
+  * As such, it is much more unlikely that Mihoyo will ban you for using this application (as opposed to using a macro, which can be easily detected to be producing an abnormal amount of keypresses).
+
+### Compilation requirements
+* Python3, Tkinter, PIL, [PyInstaller](https://stackoverflow.com/questions/5458048/how-can-i-make-a-python-script-standalone-executable-to-run-without-any-dependen)
+
+### How to contribute:
+* To the playlist of songs:
+  * I have created a github issue for adding new songs. Simply leave a comment including your song in the appropriate format for others to use!
+* To the repository:
+  * There are plenty of possible improvements / new features and you are more than welcome to contribute :)
+    * Convert Midi / other music formats into notes
+    * UX / UI improvements
+    * Support for other platforms
+    * Testing / Bug fixes
+* To my Welkin Moon fund :p
+  * You can donate via PayPal if you liked it and you want to sponsor my Welkin Moon: https://paypal.me/crazoter
+
+## Q & A
+* Q: Any intentions to implement this system on other platforms?
+  * A: No, but if you have experience and want to contribute, feel free :)
