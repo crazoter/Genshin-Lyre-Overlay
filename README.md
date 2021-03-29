@@ -1,21 +1,22 @@
 # Genshin Lyre Overlay AKA Venti Sensei
 A Python program that highlights the notes when you play the lyre on Genshin Impact. Comes with an exe to work out of the box for non-programmers.
 
-https://i.imgur.com/VnqTvVv.mp4
+<img src="https://i.imgur.com/VnqTvVv.gif" width="512">
+
+Quick demo: https://i.imgur.com/VnqTvVv.mp4
 
 Platform: Windows (Code is in Python, can be ported to MacOS)
 
 ### How does it work?
 * The application creates a window that overlays all other applications, including Genshin Impact in windowed mode.
-* The application assumes you are running Genshin Impact in a window.
-* Modify the size and spacing of the circles based on your notes keyboard, and move the window such that they overlay the notes keyboard.
-* Input the filepath (filename) of the song you want to play and press play button.
+* The user modifies the size and spacing of the circles based on their notes keyboard, and move the window such that they overlay the notes keyboard.
+* The user inputs the filepath (filename) of the song they want to play and presses play button.
 * The program will highlight the notes to play.
 * After the song has ended, the user can input another filename to play that song.
 
 ### How to use the application
 * You can run the main.exe files in either `build/main.exe` or `dist/main.exe`. If you have python 3.7 on your computer, you can just run the script directly using `python3 src/main.py`.
-* 
+
 ### How to add songs & the syntax
 * Include your file containing the song in the same directory as the application.
 * I have included an example song `song.txt` in the directory for reference.
