@@ -2,14 +2,14 @@
 A Python program that highlights the notes when you play the lyre on Genshin Impact. Comes with an exe to work out of the box for non-programmers.
 
 ## Main.py
-<img src="https://i.imgur.com/VnqTvVv.gif" width="512">
+<img src="https://cdn.discordapp.com/attachments/826031962074513408/826367978660167700/unknown.png" width="512">
 
-Quick demo: https://i.imgur.com/VnqTvVv.mp4
+Quick demo of the old version, but similar: https://i.imgur.com/VnqTvVv.mp4
 
 ## Main-keyboard.py
 * There is an alternate UI that shows the keyboard instead, and the notes fall from the top like synthesia:
 * <img src="https://imgur.com/pAHS72u.png" width="512">
-
+* This version is more suitable for playing more complicated pieces, and includes a textbox for you to modify the rate at which new notes appear.
 
 Platform: Windows (Code is in Python, can be ported to MacOS)
 
