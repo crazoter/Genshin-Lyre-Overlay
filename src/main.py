@@ -1,7 +1,14 @@
+"""
+    This program contains code adapted from: Lyre Midi Player (https://github.com/3096/genshin_scripts/blob/main/midi.py) 
+    which is under the GNU General Public License.
+"""
+
 # Requirements: Python3, Tkinter, PIL
 # install PIL using pip install pillow
 import time
 import json
+
+from typing import List
 from tkinter import *
 from PIL import ImageTk, Image
 
@@ -44,6 +51,44 @@ SKY_JSON_NOTE_MAP = {
   "1Key13": 'J',# "B7"
   "1Key14": 'Q'# "C1"
 }
+
+# Lifted from https://github.com/3096/genshin_scripts/blob/main/midi.py
+# Used for auto root finding
+LOWEST = 48
+HIGHEST = 84
+BOOL_USE_COUNT = True
+class NoteKeyMap:
+    KEY_STEPS = [
+        (0, 'z'),
+        (2, 'x'),
+        (4, 'c'),
+        (5, 'v'),
+        (7, 'b'),
+        (9, 'n'),
+        (11, 'm'),
+        (12, 'a'),
+        (14, 's'),
+        (16, 'd'),
+        (17, 'f'),
+        (19, 'g'),
+        (21, 'h'),
+        (23, 'j'),
+        (24, 'q'),
+        (26, 'w'),
+        (28, 'e'),
+        (29, 'r'),
+        (31, 't'),
+        (33, 'y'),
+        (35, 'u')
+    ]
+
+    def __init__(self, root_note):
+        self.map = {}
+        for key_step in self.KEY_STEPS:
+            self.map[root_note + key_step[0]] = key_step[1].upper()
+
+    def get_key(self, note):
+        return self.map.get(note)
 
 # Helper functions
 def radius_to_bounding_box(x, y, r):
@@ -224,7 +269,10 @@ class Application():
         elif self.sv_filename.get().lower().endswith('.json'):
             self.read_music_sky_json()
             self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
-        #elif self.sv_filename.get().lower().endswith('.smf'):
+        elif self.sv_filename.get().lower().endswith('.txtmidi'):
+            self.read_music_txtmidi()
+            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+        #elif self.sv_filename.get().lower().endswith('.midi'):
         #    print("not yet supported")
         else: # Nothing happened because we don't support any of the file formats
             print("File format not supported")
@@ -295,10 +343,73 @@ class Application():
             for i in self.songdata:
                 print(i)
 
+    def read_music_txtmidi(self):
+        print("Reading TXTMIDI")
+        with open(self.sv_filename.get()) as file:
+            songdata_tmp = file.readlines() 
+            note_count = {}
+            for i in range(len(songdata_tmp)):
+                songdata_tmp[i] = songdata_tmp[i].split(' ')
+                songdata_tmp[i] = [int(songdata_tmp[i][0]), int(songdata_tmp[i][1])]
+                # collect notes
+                if songdata_tmp[i][0] in note_count:
+                    note_count[songdata_tmp[i][0]] += 1
+                else:
+                    note_count[songdata_tmp[i][0]] = 1
 
-                
+            # count notes
+            notes = sorted(note_count.keys())
+            print(len(notes))
+            best_key_map = None
+            best_root = None
+            best_hits = -1
+            total = 0
+            for cur_root in range(max(notes[0] - 24, 0), min(notes[-1] + 25, 128)):
+                cur_key_map = NoteKeyMap(cur_root)
+                cur_note_hits = 0
+                cur_total = 0
+                for note, count in note_count.items():
+                    if LOWEST <= note < HIGHEST:
+                        if cur_key_map.get_key(note):
+                            cur_note_hits += count if BOOL_USE_COUNT else 1
+                        cur_total += count if BOOL_USE_COUNT else 1
 
+                if cur_note_hits > best_hits:
+                    best_hits = cur_note_hits
+                    total = cur_total
+                    best_key_map = cur_key_map
+                    best_root = cur_root
 
+            print(f"auto root found root at {best_root} with {best_hits}/{total} ({best_hits / total})")
+            
+            self.songdata.clear()
+            idx = 0
+            current_frame = -1
+            # 0: key, 1: time
+            for pair in songdata_tmp:
+                # First note, just add without binning yet
+                if current_frame == -1:
+                    self.songdata.append([best_key_map.get_key(pair[0]), 0])
+                    current_frame = int(songdata_tmp[0][1] / FRAME_RATE)
+                else:
+                    frame = int(pair[1] / FRAME_RATE)
+                    # Same frame, append the note to the previous group because they will visually appear at the same time
+                    if (frame == current_frame):
+                        key = best_key_map.get_key(pair[0])
+                        if (key != None):
+                            self.songdata[idx][0] += key
+                    else:
+                        # Play this note x frames from the current_frame
+                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE)
+                        # Add the next note to play x frames from now
+                        key = best_key_map.get_key(pair[0])
+                        if (key != None):
+                            self.songdata.append([key, 0])
+                            current_frame = frame
+                            idx += 1
+
+            for i in self.songdata:
+                print(i)
 
     def play_song_tick(self):
         # We've not played the first note, so start playing it
@@ -315,11 +426,11 @@ class Application():
                     self.songdata_idx += 1
 
         # If there are still more notes to animate
-        if len(self.notes_in_animation) > 0:
-            self.animate_notes()
+        if len(self.notes_in_animation) > 0 or self.songdata_idx < len(self.songdata):
+            if len(self.notes_in_animation) > 0:
+                self.animate_notes()
 
             # Update time?
-
             self.root.after(int(FRAME_RATE), self.play_song_tick)
         else:
             self.enable_inputs()
@@ -352,7 +463,6 @@ class Application():
                 self.notes_in_animation[i] = (iterations + 1, obj)
                 # Step to next object to animate
                 i += 1
-
 
 if __name__ == "__main__":
     my_application = Application()

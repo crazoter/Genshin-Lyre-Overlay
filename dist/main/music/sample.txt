@@ -1,6 +1,0 @@
-Sample Song
-Z 300
-ZX 800
-Q 800
-T 800
-E 1000

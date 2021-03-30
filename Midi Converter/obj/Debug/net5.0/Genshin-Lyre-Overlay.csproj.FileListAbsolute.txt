@@ -1,0 +1,27 @@
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.csprojAssemblyReference.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.GeneratedMSBuildEditorConfig.editorconfig
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.AssemblyInfoInputs.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.AssemblyInfo.cs
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.csproj.CoreCompileInputs.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Genshin-Lyre-Overlay.exe
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Genshin-Lyre-Overlay.deps.json
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Genshin-Lyre-Overlay.runtimeconfig.json
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Genshin-Lyre-Overlay.runtimeconfig.dev.json
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Genshin-Lyre-Overlay.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\ref\Genshin-Lyre-Overlay.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Genshin-Lyre-Overlay.pdb
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\ref\Genshin-Lyre-Overlay.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.pdb
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.genruntimeconfig.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Melanchall.DryWetMidi.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\bin\Debug\net5.0\Melanchall.DryWetMidi.xml
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter\obj\Debug\net5.0\Genshin-Lyre-Overlay.csproj.CopyComplete
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.csprojAssemblyReference.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.GeneratedMSBuildEditorConfig.editorconfig
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.AssemblyInfoInputs.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.AssemblyInfo.cs
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.csproj.CoreCompileInputs.cache
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\ref\Genshin-Lyre-Overlay.dll
+D:\Study\Fun\Genshin-Lyre-Overlay\Midi Converter (WIP)\obj\Debug\net5.0\Genshin-Lyre-Overlay.pdb
