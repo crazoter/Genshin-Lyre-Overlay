@@ -38,7 +38,8 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
     * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
 * **.json**: [Sky Music](https://sky-music.herokuapp.com/) format exported directly from the herokuapp in JSON format (you have to rename the .txt file extension to .json). 
   * No modification by the user is required. Note that BPM is not factored into this application.
-* **.txtmidi**: A file format that I convert from midi. 
+* **.txtmidi**: Unofficial file format that I convert from midi. 
+  * Every new line is a note, space, then the timestamp of the note.
   * To use midi files, put the name of the midi as `file.midi` in `Midi Converter/bin/debug/net5.0/file.midi`. Run the exe and you'll get `output.txtmidi`. Rename this txtmidi to whatever name you want; you can use this txtmidi in the application.
 ### Visual Cues
 * As the notes are placed in a compact fashion in-game, I decided to make the visual cues akin to an expanding circle from the centre of the button, like the exact opposite of the Windblume mini-game where they converge onto the button:
