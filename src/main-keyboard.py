@@ -21,7 +21,7 @@ from PIL import ImageTk, Image
 # Constants
 BUTTON_ROWS = 3
 BUTTON_COLS = 7
-SECONDS_TO_START_ANIMATION = 2        # Number of seconds before we begin animating the circle
+SECONDS_TO_START_ANIMATION = 5        # Number of seconds before we begin animating the circle
 FPS = 30.0
 ITERATIONS_UNTIL_ANIM_OVER = FPS * SECONDS_TO_START_ANIMATION
 FRAME_RATE = 1000/FPS                # This will also affect the accuracy of your songs

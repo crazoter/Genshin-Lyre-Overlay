@@ -8,7 +8,7 @@ Quick demo: https://i.imgur.com/VnqTvVv.mp4
 
 ## Main-keyboard.py
 * There is an alternate UI that shows the keyboard instead, and the notes fall from the top like synthesia:
-* <img src="https://i.imgur.com/Gv6XuzO.png" width="512">
+* <img src="https://imgur.com/pAHS72u.png" width="512">
 
 
 Platform: Windows (Code is in Python, can be ported to MacOS)
