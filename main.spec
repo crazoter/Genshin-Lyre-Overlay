@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
-             pathex=['D:\\Study\\Fun\\Venti Sensei'],
+a = Analysis(['src\\main.py'],
+             pathex=['D:\\Study\\Fun\\Genshin-Lyre-Overlay'],
              binaries=[],
              datas=[],
              hiddenimports=[],

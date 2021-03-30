@@ -18,14 +18,20 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
 * 
 ### How to add songs & the syntax
 * Include your file containing the song in the same directory as the application.
-* I have included an example song `song.txt` in the directory for reference.
+* I have included an example song in the music directory `music/sample.txt` for reference.
+
+### Supported Syntaxes
+* The application will parse files differently based on the music file extension.
+* **.txt**: text file. In txt format, the numbers represent the duration (in ms) to wait before playing the set of notes on the next line.
 * The syntax of the files are as follows (I'm not musically trained so bear with me):
   * 1st line: Name of the song to be displayed on screen
   * 2rd line onwards: Each line denotes a new entry. Each entry is:
   * {Keys to press}{1 whitespace}{number of milliseconds to the next entry}
     * Note that the keys to press must not have any whitespace between them.
     * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
-
+* **.json**: [Sky Music](https://sky-music.herokuapp.com/) format exported directly from the herokuapp in JSON format (you have to rename the .txt file extension to .json). 
+  * No modification by the user is required. Note that BPM is not factored into this application.
+* **.midi**: Midi file format. Currently not supported, but file support is intended in the future.
 ### Visual Cues
 * As the notes are placed in a compact fashion in-game, I decided to make the visual cues akin to an expanding circle from the centre of the button, like the exact opposite of the Windblume mini-game where they converge onto the button:
   * When the edge of the circle touches the edge of the button, that is when you want to play the note.

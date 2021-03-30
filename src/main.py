@@ -1,6 +1,7 @@
 # Requirements: Python3, Tkinter, PIL
 # install PIL using pip install pillow
 import time
+import json
 from tkinter import *
 from PIL import ImageTk, Image
 
@@ -21,6 +22,28 @@ DELAY_AFTER_PLAY_PRESSED = 2000
 
 HELP_STRING = "Configure the circles to fit your notes by modifying the values in the textboxes (current values are for 1280x720). Then, input the correct filename & hit play :)"
 
+KEYS = [['Q','W','E','R','T','Y','U'],
+    ['A','S','D','F','G','H','J'],
+    ['Z','X','C','V','B','N','M']]
+
+# Contribution by Ghostlium
+SKY_JSON_NOTE_MAP = {
+  "1Key0": 'Z',# "A1"
+  "1Key1": 'X',# "A2"
+  "1Key2": 'C',# "A3"
+  "1Key3": 'V',# "A4"
+  "1Key4": 'B',# "A5"
+  "1Key5": 'N',# "A6"
+  "1Key6": 'M',# "A7"
+  "1Key7": 'A',# "B1"
+  "1Key8": 'S',# "B2"
+  "1Key9": 'D',# "B3"
+  "1Key10": 'F',# "B4"
+  "1Key11": 'G',# "B5"
+  "1Key12": 'H',# "B6"
+  "1Key13": 'J',# "B7"
+  "1Key14": 'Q'# "C1"
+}
 
 # Helper functions
 def radius_to_bounding_box(x, y, r):
@@ -58,7 +81,7 @@ class Application():
         self.keyboard_outline_objs = []
         self.root = Tk()
         # create the string values for the entries that invoke an event after being changed
-        self.sv_filename = StringVar(self.root, value="song.txt")
+        self.sv_filename = StringVar(self.root, value="music/sample.txt")
         self.sv_descriptlabel = StringVar(self.root, value=HELP_STRING)
         self.sv_radius = StringVar(self.root, value=str(29))
         self.sv_x_spacing = StringVar(self.root, value=str(60))
@@ -92,7 +115,7 @@ class Application():
         self.sv_x_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_x_spacing: self.reformat_outlines_callback(self.sv_x_spacing))
 
         # create the widgets for the top frame
-        label_file = Label(top_frame, text='File:')
+        label_file = Label(top_frame, text='Filepath:')
         entry_file = Entry(top_frame, background="lavender", textvariable=self.sv_filename)
         label_radius = Label(top_frame, text='Circle radius')
         entry_radius = Entry(top_frame, background="lavender", textvariable=self.sv_radius)
@@ -172,10 +195,7 @@ class Application():
         curr_x = r + x_offset
         curr_y = r + y_offset
 
-        keys = [['Q','W','E','R','T','Y','U'],
-            ['A','S','D','F','G','H','J'],
-            ['Z','X','C','V','B','N','M']]
-        for row in keys:
+        for row in KEYS:
             for k in row:
                 self.charmap[k] = (curr_x, curr_y)
                 curr_x += r + x_offset
@@ -191,16 +211,33 @@ class Application():
             obj['state'] = 'normal'
 
     def play_btn_press(self):
+        # Disable inputs and pre_compute animation constants
         self.disable_inputs()
         # Now that user cannot change size of keyboard, set the bounding box expansion rate for animation
         self.set_bbox_expansion_rate_per_frame()
         self.set_charmap()
+        self.songdata_idx = 1
         # here I assume the user inputs the correct filename
+        if self.sv_filename.get().lower().endswith('.txt'):
+            self.read_music_txt()
+            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+        elif self.sv_filename.get().lower().endswith('.json'):
+            self.read_music_sky_json()
+            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+        #elif self.sv_filename.get().lower().endswith('.smf'):
+        #    print("not yet supported")
+        else: # Nothing happened because we don't support any of the file formats
+            print("File format not supported")
+            self.enable_inputs()
+            self.sv_descriptlabel.set(HELP_STRING)
+
+    def read_music_txt(self):
+        # Read in file
+        print("Reading TXT")
         with open(self.sv_filename.get()) as file:
             self.songdata = file.readlines() 
             self.songname = "Now playing: " + self.songdata[0] # I expect the first line in the file to be the name of the song
             self.songduration = DELAY_AFTER_PLAY_PRESSED / 1000 + SECONDS_TO_START_ANIMATION
-            self.songdata_idx = 1
 
             # For every subsequent line, 
             # I expect the buttons to be pressed (no spaces), and the duration (in milliseconds) to the next series of buttons to be pressed.
@@ -224,7 +261,44 @@ class Application():
             self.songduration = "%d:%d" % (minutes, seconds)
             self.sv_descriptlabel.set(self.songname.replace('\n',''))
 
-            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+            for i in self.songdata:
+                print(i)
+
+    def read_music_sky_json(self):
+        print("Reading JSON")
+        with open(self.sv_filename.get()) as file:
+            data = json.load(file)[0]
+            # Assume that songdata is not without notes
+            self.songname = "Now playing: " + data['name']
+            self.sv_descriptlabel.set(self.songname.replace('\n',''))
+            self.songdata.clear()
+            idx = 0
+            current_frame = -1
+            for pair in data['songNotes']:
+                # First note, just add without binning yet
+                if current_frame == -1:
+                    self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
+                    current_frame = int(data['songNotes'][0]['time'] / FRAME_RATE)
+                else:
+                    frame = int(pair['time'] / FRAME_RATE)
+                    # Same frame, append the note to the previous group because they will visually appear at the same time
+                    if (frame == current_frame):
+                        self.songdata[idx][0] += SKY_JSON_NOTE_MAP[pair['key']]
+                    else:
+                        # Play this note x frames from the current_frame
+                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE)
+                        # Add the next note to play x frames from now
+                        self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
+                        current_frame = frame
+                        idx += 1
+
+            for i in self.songdata:
+                print(i)
+
+
+                
+
+
 
     def play_song_tick(self):
         # We've not played the first note, so start playing it
