@@ -21,7 +21,7 @@ from PIL import ImageTk, Image
 # Constants
 BUTTON_ROWS = 3
 BUTTON_COLS = 7
-SECONDS_TO_START_ANIMATION = 2        # Number of seconds before we begin animating the circle
+SECONDS_TO_START_ANIMATION = 3        # Number of seconds before we begin animating the circle
 FPS = 30.0
 ITERATIONS_UNTIL_ANIM_OVER = FPS * SECONDS_TO_START_ANIMATION
 FRAME_RATE = 1000/FPS                # This will also affect the accuracy of your songs
@@ -224,6 +224,8 @@ class Application():
         for i in range(BUTTON_ROWS):
             for j in range(BUTTON_COLS):
                 self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, r, outline="red", width=3))
+                self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, 11, outline="#FFF9EF", fill="#FFF9EF"))
+                self.keyboard_outline_objs.append(self.canvas.create_text(curr_x, curr_y,fill="black",font="Times 14 bold", text=KEYS[i][j]))
                 curr_x += r + x_offset
             curr_x = r + x_offset
             curr_y += r + y_offset

@@ -106,6 +106,7 @@ class Application():
         self.songname = ""
         self.songdata = []
         self.songdata_idx = 0
+        self.songspeed = 1
         # Each entry is (animationsLeft:Integer = BEATS_TO_START_ANIM, object on canvas)
         # When animationsLeft becomes 0, we remove the object from the canvas
         self.notes_in_animation = []
@@ -121,6 +122,7 @@ class Application():
         # create the string values for the entries that invoke an event after being changed
         self.sv_filename = StringVar(self.root, value="music/sample.txt")
         self.sv_descriptlabel = StringVar(self.root, value=HELP_STRING)
+        self.sv_speed = StringVar(self.root, value="1")
         # Elements that we will need access to
         self.canvas = None
         self.label_descriptlabel = None
@@ -147,18 +149,23 @@ class Application():
         # create the widgets for the top frame
         label_file = Label(top_frame, text='Filepath:')
         entry_file = Entry(top_frame, background="lavender", textvariable=self.sv_filename)
+        label_speed = Label(top_frame, text='Speed Multiplier:')
+        entry_speed = Entry(top_frame, background="lavender", textvariable=self.sv_speed)
         button_play = Button(top_frame, text='Play', background="red", command=self.play_btn_press)
         
         self.label_descriptlabel = Label(top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
 
         # Store in list for us to enable / disable
         self.inputObjects.append(entry_file)
+        self.inputObjects.append(entry_speed)
         self.inputObjects.append(button_play)
 
         # layout the widgets in the top frame
         label_file.grid(row=0, column=0)
         entry_file.grid(row=0, column=1)
         button_play.grid(row=0, column=2)
+        label_speed.grid(row=0, column=3)
+        entry_speed.grid(row=0, column=4)
         self.label_descriptlabel.grid(row=1, column=0, columnspan=9)
 
         # create & layout the canvas
@@ -187,6 +194,7 @@ class Application():
         # Disable inputs and pre_compute animation constants
         self.disable_inputs()
         self.songdata_idx = 1
+        self.songspeed = 1 / float(self.sv_speed.get())
         # here I assume the user inputs the correct filename
         if self.sv_filename.get().lower().endswith('.txt'):
             self.read_music_txt()
@@ -223,7 +231,7 @@ class Application():
                 # [Keys,ms to next]
                 self.songdata[i] = self.songdata[i].split(' ')
                 self.songdata[i][0] = self.songdata[i][0].upper()
-                self.songdata[i][1] = float(self.songdata[i][1])
+                self.songdata[i][1] = float(self.songdata[i][1]) * self.songspeed
                 self.songduration += self.songdata[i][1]
 
             # Calculate formatted song duration
@@ -251,7 +259,7 @@ class Application():
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
-                    current_frame = int(data['songNotes'][0]['time'] / FRAME_RATE)
+                    current_frame = int(data['songNotes'][0]['time'] / FRAME_RATE * self.songspeed)
                 else:
                     frame = int(pair['time'] / FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
@@ -259,7 +267,7 @@ class Application():
                         self.songdata[idx][0] += SKY_JSON_NOTE_MAP[pair['key']]
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE)
+                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE * self.songspeed)
                         # Add the next note to play x frames from now
                         self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
                         current_frame = frame
@@ -275,7 +283,7 @@ class Application():
             note_count = {}
             for i in range(len(songdata_tmp)):
                 songdata_tmp[i] = songdata_tmp[i].split(' ')
-                songdata_tmp[i] = [int(songdata_tmp[i][0]), int(songdata_tmp[i][1])]
+                songdata_tmp[i] = [int(songdata_tmp[i][0]), float(songdata_tmp[i][1])]
                 # collect notes
                 if songdata_tmp[i][0] in note_count:
                     note_count[songdata_tmp[i][0]] += 1
@@ -315,7 +323,7 @@ class Application():
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([best_key_map.get_key(pair[0]), 0])
-                    current_frame = int(songdata_tmp[0][1] / FRAME_RATE)
+                    current_frame = int(songdata_tmp[0][1] / FRAME_RATE * self.songspeed)
                 else:
                     frame = int(pair[1] / FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
@@ -325,7 +333,7 @@ class Application():
                             self.songdata[idx][0] += key
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE)
+                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE * self.songspeed)
                         # Add the next note to play x frames from now
                         key = best_key_map.get_key(pair[0])
                         if (key != None):
