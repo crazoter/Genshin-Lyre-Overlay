@@ -1,12 +1,12 @@
 # Genshin Lyre Overlay AKA Venti Sensei
 A Python program that highlights the notes when you play the lyre on Genshin Impact. Comes with an exe to work out of the box for non-programmers.
 
-## Main.py
+## Main-overlay.py / Main-overlay.exe
 <img src="https://i.imgur.com/VnqTvVv.gif" width="512">
 
 Quick demo: https://i.imgur.com/VnqTvVv.mp4
 
-## Main-keyboard.py
+## Main-keyboard.py / Main-keyboard.exe
 * There is an alternate UI that shows the keyboard instead, and the notes fall from the top like synthesia:
 * <img src="https://imgur.com/pAHS72u.png" width="512">
 
