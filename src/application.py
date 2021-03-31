@@ -33,7 +33,8 @@ KEYS = [['Q','W','E','R','T','Y','U'],
     ['A','S','D','F','G','H','J'],
     ['Z','X','C','V','B','N','M']]
 
-KEY_LIST = ['Q','W','E','R','T','Y','U', 'A','S','D','F','G','H','J','Z','X','C','V','B','N','M']
+# KEY_LIST = [ 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U' ]
+KEY_LIST = [ 'Z', 'X', 'C', 'A', 'S', 'D', 'Q', 'W', 'E', 'V', 'B', 'N', 'M', 'F', 'G', 'H', 'J', 'R', 'T', 'Y', 'U' ]
 KEY_IDX_MAP = {}
 for i in range(len(KEY_LIST)):
     KEY_IDX_MAP[KEY_LIST[i]] = i

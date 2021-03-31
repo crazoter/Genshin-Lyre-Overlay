@@ -15,6 +15,13 @@ from PIL import ImageTk, Image
 
 DROP_RATE = 350 / ITERATIONS_UNTIL_ANIM_OVER                  # oops magic numbers; this is based on hardcoded height
 
+# I assume most are right handed and play 4 fingers on right side
+LEFT_HAND_KEY_LIST = {
+    'Q','W','E',
+    'A','S','D',
+    'Z','X','C'
+}
+
 class KeyboardApplication(Application):
     def __init__(self):
         super().__init__()
@@ -66,11 +73,26 @@ class KeyboardApplication(Application):
         center.grid_rowconfigure(0, weight=1)
         center.grid_columnconfigure(1, weight=1)
         self.canvas = Canvas(center, bg='white', height=500, width=(900))
+        self.canvas.create_text(10, 375,fill='black', font="Times 16 bold", text='1')
+        self.canvas.create_text(10, 395,fill='black', font="Times 16 bold", text='2')
+        self.canvas.create_text(10, 415,fill='black', font="Times 16 bold", text='3')
 
+        # Draw buttons and grid
         for i in range(BUTTON_COLS * BUTTON_ROWS):
-            offset = 20 + i * 40
+            offset = 40 + i * 40
+            key = KEY_LIST[i].upper()
+            colour = "#f00"
+            if key in LEFT_HAND_KEY_LIST:
+                colour = "#00f"
+
+            height_offset = 375
+            if key in KEYS[1]:
+                height_offset = 395
+            elif key in KEYS[2]:
+                height_offset = 415
             self.canvas.create_rectangle(offset, 350, offset + 20, 360, outline="#fb0", fill="#fb0")
-            self.canvas.create_text(offset + 12, 375,fill="darkblue",font="Times 16 bold", text=KEY_LIST[i])
+            self.canvas.create_text(offset + 12, height_offset, fill=colour, font="Times 16 bold", text=key)
+
         self.canvas.grid(row=0, column=1, sticky="nsew")
 
         self.root.mainloop()
@@ -83,9 +105,12 @@ class KeyboardApplication(Application):
     # Overriden method
     def play_char_note(self, c):
         if c in KEY_IDX_MAP:
-            curr_x = 20 + KEY_IDX_MAP[c] * 40
+            curr_x = 40 + KEY_IDX_MAP[c] * 40
+            colour = "#f00"
+            if c in LEFT_HAND_KEY_LIST:
+                colour = "#00f"
             self.notes_in_animation.append(
-                (0, self.canvas.create_rectangle(curr_x, 0, curr_x + 20, 10, outline="#F00", fill="#F00"))
+                (0, self.canvas.create_rectangle(curr_x, 0, curr_x + 20, 10, outline=colour, fill=colour))
             )
     
     # Overriden method
