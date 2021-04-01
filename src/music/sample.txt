@@ -1,4 +1,5 @@
 Sample Song
+Format: 1
 Z 300
 ZX 800
 Q 800

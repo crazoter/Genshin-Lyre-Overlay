@@ -58,6 +58,32 @@ SKY_JSON_NOTE_MAP = {
   "1Key14": 'Q'# "C1"
 }
 
+# https://www.hoyolab.com/genshin/article/271778
+NOTE_LIST = ['C5','D5','E5','F5','G5','A5','B5','C4','D4','E4','F4','G4','A4','B4','C3','D3','E3','F3','G3','A3','B3']
+NOTE_TO_KEY_MAP = {
+    'C5':'Q',
+    'D5':'W',
+    'E5':'E',
+    'F5':'R',
+    'G5':'T',
+    'A5':'Y',
+    'B5':'U',
+    'C4':'A',
+    'D4':'S',
+    'E4':'D',
+    'F4':'F',
+    'G4':'G',
+    'A4':'H',
+    'B4':'J',
+    'C3':'Z',
+    'D3':'X',
+    'E3':'C',
+    'F3':'V',
+    'G3':'B',
+    'A3':'N',
+    'B3':'M'
+}
+
 # Lifted from https://github.com/3096/genshin_scripts/blob/main/midi.py
 # Used for auto root finding
 LOWEST = 48
@@ -105,6 +131,7 @@ class Application():
         self.notes_in_animation = []
         self.keyboard_outline_objs = []
         self.inputObjects = []
+        self.songspeed = 1
 
         self.root = Tk() 
         self.sv_filename = StringVar(self.root, value="music/sample.txt")
@@ -151,33 +178,125 @@ class Application():
         print("Reading TXT")
         with open(self.sv_filename.get()) as file:
             self.songdata = file.readlines() 
-            self.songname = "Now playing: " + self.songdata[0] # I expect the first line in the file to be the name of the song
-            self.songduration = DELAY_AFTER_PLAY_PRESSED / 1000 + SECONDS_TO_START_ANIMATION
+            self.songname = "Now playing: " + self.songdata.pop(0) # I expect the first line in the file to be the name of the song
+            header_format = self.songdata.pop(0).strip().lower()
+            if header_format == 'format: 1':
+                # For every subsequent line, 
+                # I expect the buttons to be pressed (no spaces), and the duration (in milliseconds) to the next series of buttons to be pressed.
+                # These two things have to be separated by a space.
+                # e.g. "QWAD 120" means the program will signal you to press QWAD at the same time for this iteration, and wait 120ms before it plays the next line.
+                for i in range(len(self.songdata)):
+                    # [Keys,ms to next]
+                    self.songdata[i] = self.songdata[i].strip().split()
+                    self.songdata[i][0] = self.songdata[i][0].upper()
+                    self.songdata[i][1] = float(self.songdata[i][1]) * self.songspeed
+            elif header_format == 'format: 2':
+                i = 2
+                current_default_octave = 3
+                while i < len(self.songdata):
+                    self.songdata[i] = self.songdata[i].strip().upper()
+                    # Ignore new lines
+                    if self.songdata[i] == '' or self.songdata[i] == '\n' or self.songdata[i][0] == '/':
+                        self.songdata.pop(i)
+                        continue
+                    elif 'OCT' in self.songdata[i]:
+                        if (len(self.songdata[i]) == 4):
+                            current_default_octave = int(self.songdata[i][3])
+                        else:
+                            print("invalid line containing OCT")
+                        self.songdata.pop(i)
+                        continue
+                
+                    self.songdata[i] = self.songdata[i].split()
+                    note = self.songdata[i][0]
 
-            # For every subsequent line, 
-            # I expect the buttons to be pressed (no spaces), and the duration (in milliseconds) to the next series of buttons to be pressed.
-            # These two things have to be separated by a space.
-            # e.g. "QWAD 120" means the program will signal you to press QWAD at the same time for this iteration, and wait 120ms before it plays the next line.
+                    # Insert default octave if needed
+                    if (len(note) == 1 or (len(note) == 2 and note[1] == '#')):
+                        if '{0}{1}'.format(note[0], current_default_octave) not in NOTE_TO_KEY_MAP:
+                            # How to handle notes outside of keymap?
+                            print("Note " + note + "is not in keymap")
+                        if '#' in note:
+                            note = '{0}{1}{2}'.format(note[0], current_default_octave ,'#')
+                        else:
+                            note = '{0}{1}'.format(note[0], current_default_octave)
 
-            for i in range(len(self.songdata)):
-                if i == 0:
-                    continue
-                # [Keys,ms to next]
-                self.songdata[i] = self.songdata[i].split(' ')
-                self.songdata[i][0] = self.songdata[i][0].upper()
-                self.songdata[i][1] = float(self.songdata[i][1])
-                self.songduration += self.songdata[i][1]
+                    # Convert to keystrokes
+                    if '#' in note:
+                        # Trim last char
+                        note = note[:-1]
+                        idx = NOTE_LIST.index(note)
+                        if (idx > -1):
+                            # How to handle sharps? right now I just play 2 notes..
+                            self.songdata[i][0] = NOTE_TO_KEY_MAP[note] + NOTE_TO_KEY_MAP[NOTE_LIST[idx+1]]
+                        else:
+                            print('higher note for sharp note not found')
+                    else:
+                        self.songdata[i][0] = NOTE_TO_KEY_MAP[note]
 
-            # Calculate formatted song duration
-            seconds = (self.songduration/1000)%60
-            seconds = int(seconds)
-            minutes = (self.songduration/(1000*60))
-            minutes = int(minutes)
-            self.songduration = "%d:%d" % (minutes, seconds)
-            self.sv_descriptlabel.set(self.songname.replace('\n',''))
+                    self.songdata[i][1] = float(self.songdata[i][1]) * self.songspeed
+                    i += 1
+            elif header_format == 'format: 2':
+                i = 2
+                bpm = 120.0
+                delay_in_ms = 60 * 1000 / bpm
+                bracket_opened = False
+                current_sequence = ''
+                current_delay = 1
+                tmp_data = []
+                while i < len(self.songdata):
+                    self.songdata[i] = self.songdata[i].strip().upper()
+                    # Ignore new lines
+                    if self.songdata[i] == '' or self.songdata[i] == '\n' or self.songdata[i][0] == '/':
+                        self.songdata.pop(i)
+                        continue
+                    elif 'BPM' in self.songdata[i]:
+                        bpm = float(self.songdata.split()[1])
+                        delay_in_ms = 60 * 1000 / bpm
+                        continue
+                    elif 'DELAY' in self.songdata[i]:
+                        val = int(self.songdata.split()[1])
+                        # Minus one to offset the initial asusmption that the delay is 1 when we see another note
+                        # However, when you use delay, you want the delay to be the one defining the actual delay
+                        if current_delay == 1:
+                            val -= 1
+                        if val > 0:
+                            current_delay += val
+                    else:
+                        # Remove all whitespace and process
+                        for c in "".join(self.songdata[i].split()):
+                            # If the bracket is not open and we have a current sequence and a new char coming in
+                            if not bracket_opened and c != '-' and current_sequence != '':
+                                    # Create entry for the previous sequence
+                                    tmp_data.append([current_sequence, current_delay * delay_in_ms])
+                                    current_sequence = ''
+                                    current_delay = 1
+                            if c == '(':
+                                bracket_opened = True
+                            elif c == ')':
+                                bracket_opened = False
+                            elif c == '-':
+                                if bracket_opened:
+                                    print("Parsing Warning: Why is there a dash in an open bracket?")
+                                else:
+                                    current_delay += 1
+                            else:
+                                # whether bracket is open or closed, we handled it
+                                current_sequence += c
+
+                # ensure we add the last note
+                if current_sequence != '':
+                    tmp_data.append([current_sequence, current_delay * delay_in_ms])
+
+                self.songdata.clear()
+                self.songdata = tmp_data
+
+            else:
+                print("TXT format unknown")
 
             for i in self.songdata:
                 print(i)
+            
+            self.sv_descriptlabel.set(self.songname.replace('\n',''))
 
     def read_music_sky_json(self):
         print("Reading JSON")
@@ -193,7 +312,7 @@ class Application():
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
-                    current_frame = int(data['songNotes'][0]['time'] / FRAME_RATE)
+                    current_frame = int(data['songNotes'][0]['time'] / FRAME_RATE * self.songspeed)
                 else:
                     frame = int(pair['time'] / FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
@@ -201,7 +320,7 @@ class Application():
                         self.songdata[idx][0] += SKY_JSON_NOTE_MAP[pair['key']]
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE)
+                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE * self.songspeed)
                         # Add the next note to play x frames from now
                         self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
                         current_frame = frame
@@ -257,7 +376,7 @@ class Application():
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([best_key_map.get_key(pair[0]), 0])
-                    current_frame = int(songdata_tmp[0][1] / FRAME_RATE)
+                    current_frame = int(songdata_tmp[0][1] / FRAME_RATE * self.songspeed)
                 else:
                     frame = int(pair[1] / FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
@@ -267,7 +386,7 @@ class Application():
                             self.songdata[idx][0] += key
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE)
+                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE * self.songspeed)
                         # Add the next note to play x frames from now
                         key = best_key_map.get_key(pair[0])
                         if (key != None):

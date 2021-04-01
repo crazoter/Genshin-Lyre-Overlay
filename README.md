@@ -30,17 +30,40 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
 
 ### Supported Syntaxes
 * The application will parse files differently based on the music file extension.
-* **.txt**: text file. In txt format, the numbers represent the duration (in ms) to wait before playing the set of notes on the next line.
-* The syntax of the files are as follows (I'm not musically trained so bear with me):
-  * 1st line: Name of the song to be displayed on screen
-  * 2rd line onwards: Each line denotes a new entry. Each entry is:
-  * {Keys to press}{1 whitespace}{number of milliseconds to the next entry}
-    * Note that the keys to press must not have any whitespace between them.
-    * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
+* **.txt**: text file. In txt format. The first two lines are the same for every format under `.txt`. 
+* **First Line:** Song name
+* **Second Line:** `format: {number}`, where number represents the format number. This will determine how the program parses the file.
+* **Third line onwards:** The application will process the data based on the format number:
+* **Format 1**: Keypresses & delays on every line
+    * Each line from the 3rd line onwards denotes a new entry. Each entry is:
+    * {Keys to press}{1 whitespace}{number of milliseconds before the program plays the next entry}
+      * Note that the keys to press must not have any whitespace between them.
+      * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
+* **Format 2**: Notes in alphabetical format & delays on every line
+  * * Each line from the 3rd line onwards denotes a new entry. Each entry is:
+    * {Note to press}{1 whitespace}{number of milliseconds before the program plays the next entry}
+      * Note that the keys to press must not have any whitespace between them.
+      * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
+      * `format2_sample.txt` serves as a sample.
+  * It also supports 1 command:
+    * `OCT{number}`: Set the default octave (no space between OCT and number). So instead of specifying `C4`, you can just specify `C` and the program will auto-fill it to `C4` if the default octave is 4. The command can be called by putting `OCT{number}` on any new line.
+  * In addition, as a quality of life add-on for comments & formatting, empty new lines and any lines with the prefix '/' will be skipped.
+* **Format 3**: Keyboard sheet reading
+  * The motivation of this format is to support music written in keystrokes format that do not have timing information.
+  * New lines do not matter in this format, so long as they do not start with the prefix `BPM`, `DELAY` or `/`.
+  * **Syntax**: 
+    * Spaces and new lines do not matter when it comes to keystrokes.
+    * Alphabets represent the keystrokes. e.g. `QW` will mean the program plays Q, then on the next beat play W.
+    * Adding a `-` between two keystrokes signify that we skip one beat before playing the next keystroke. Multiple dashes would represent multiple beats skipped ahead.
+    * Wrapping multiple keystrokes with brackets e.g. `(AQW)` signifies that they are played on the same beat.
+  * **Commands**: Every command must start on a new line, and any keystrokes that follow after the command must start on a new line. The supported commands are:
+    * **Set BPM**: `BPM {number}`: Set the BPM to the number specified for the rest of the keystrokes.
+    * **Delay keypresses**: `DELAY {number}`: Add a pause between the previous keystrokes and the next. The number represents the number of beats we skip ahead.
+  * Comments (any new lines prefixed by `/`) will be ignored by the parser.
 * **.json**: [Sky Music](https://sky-music.herokuapp.com/) format exported directly from the herokuapp in JSON format (you have to rename the .txt file extension to .json). 
   * No modification by the user is required. Note that BPM is not factored into this application.
 * **.txtmidi**: Unofficial file format that can be converted from midi as I am lazy to figure out how to properly use mido.py
-  * Every new line is a note, space, then the timestamp of the note.
+  * Every new line is a note (numerical), space, then the timestamp of the note.
   * To use midi files, put the name of the midi as `file.midi` in `Midi Converter/bin/debug/net5.0/file.midi`. Run the exe and you'll get `output.txtmidi`. Rename this txtmidi to whatever name you want; you can use this txtmidi in the application.
   * You can open `output.txtmidi` in any text editor as it is not a binary file.
 ### Visual Cues
@@ -54,8 +77,15 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
   * The application does not perform or detect any keypresses; the player is still in full control of the lyre.
   * As such, it is much more unlikely that Mihoyo will ban you for using this application (as opposed to using a macro, which can be easily detected to be producing an abnormal amount of keypresses).
 
-### Compilation requirements
-* Python3, Tkinter, PIL, [PyInstaller](https://stackoverflow.com/questions/5458048/how-can-i-make-a-python-script-standalone-executable-to-run-without-any-dependen)
+### User requirements
+* Windows
+* Unknown lmao I need more people to help me test this
+### Development requirements
+* Main Application
+  * Python3, Tkinter, PIL is sufficient to run the python script without compiling.
+  * If compiling the python script as executables: [PyInstaller](https://stackoverflow.com/questions/5458048/how-can-i-make-a-python-script-standalone-executable-to-run-without-any-dependen)
+* Midi Converter
+  * C#, .NET Framework 5.0
 
 ### How to contribute:
 * To the playlist of songs:
