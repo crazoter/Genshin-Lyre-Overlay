@@ -155,17 +155,18 @@ class OverlayApplication(Application):
     def post_play_press_pre_data_parse(self):
         self.set_bbox_expansion_rate_per_frame()
         self.set_charmap()
-        self.songdata_idx = 1
+        self.songdata_idx = 0
 
     # Overriden method
     def play_char_note(self, c):
         if c in self.charmap:
             curr_x, curr_y = self.charmap[c]
-            self.notes_in_animation.append((0, self.canvas.create_circle(curr_x, curr_y, 0, outline="blue", width=2)))
+            self.notes_in_animation.append((0, self.canvas.create_circle(curr_x, curr_y, 0, outline="red", width=2)))
     
     # Overriden method
-    def animate_object(self, i, iterations, obj):
+    def animate_object(self, i, note_in_animation):
         # Get coords
+        iterations, obj = note_in_animation
         x1, y1, x2, y2 = self.canvas.coords(obj)
         # Update using expansion rate
         self.canvas.coords(obj, 

@@ -99,7 +99,7 @@ class KeyboardApplication(Application):
 
     # Overriden method
     def post_play_press_pre_data_parse(self):
-        self.songdata_idx = 1
+        self.songdata_idx = 0
         self.songspeed = 1 / float(self.sv_speed.get())
 
     # Overriden method
@@ -114,8 +114,9 @@ class KeyboardApplication(Application):
             )
     
     # Overriden method
-    def animate_object(self, i, iterations, obj):
+    def animate_object(self, i, note_in_animation):
         # Get coords
+        iterations, obj = note_in_animation
         x1, y1, x2, y2 = self.canvas.coords(obj)
         # Update using expansion rate
         self.canvas.coords(obj, 

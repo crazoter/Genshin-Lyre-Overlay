@@ -132,6 +132,8 @@ class Application():
         self.keyboard_outline_objs = []
         self.inputObjects = []
         self.songspeed = 1
+        self.ui_enabled = True
+        self.post_song_delay = 10
 
         self.root = Tk() 
         self.sv_filename = StringVar(self.root, value="music/sample.txt")
@@ -141,12 +143,16 @@ class Application():
         self.root.title('Teach me the lyre, Venti Sensei!')
 
     def disable_inputs(self):
+        self.ui_enabled = False
+        self.post_song_delay = 10
         for obj in self.inputObjects:
             obj['state'] = 'disabled'
 
     def enable_inputs(self):
         for obj in self.inputObjects:
             obj['state'] = 'normal'
+        self.ui_enabled = True
+        self.song_ended()
 
     def play_btn_press(self):
         # Disable inputs and pre_compute animation constants
@@ -250,11 +256,29 @@ class Application():
                         self.songdata.pop(i)
                         continue
                     elif 'BPM' in self.songdata[i]:
+                        # ensure we add the prev note in the old bpm
+                        if current_sequence != '':
+                            tmp_data.append([current_sequence, current_delay * delay_in_ms])
+                            current_delay = 1
+                            current_sequence = ''
                         bpm = float(self.songdata.split()[1])
                         delay_in_ms = 60 * 1000 / bpm
                         continue
-                    elif 'DELAY' in self.songdata[i]:
+                    elif 'DELAY' in self.songdata[i] or '=' in self.songdata[i]:
                         val = int(self.songdata.split()[1])
+                        # Minus one to offset the initial asusmption that the delay is 1 when we see another note
+                        # However, when you use delay, you want the delay to be the one defining the actual delay
+                        if current_delay == 1:
+                            val -= 1
+                        if val > 0:
+                            current_delay += val
+                    elif 'INTERVAL' in self.songdata[i]:
+                        delay_in_ms = float(self.songdata.split()[1])
+                        bpm = 60 * 1000 / delay_in_ms
+                    elif 'DELAY_MS' in self.songdata[i]:
+                        val = float(self.songdata.split()[1])
+                        # convert to beats
+                        val = val / delay_in_ms
                         # Minus one to offset the initial asusmption that the delay is 1 when we see another note
                         # However, when you use delay, you want the delay to be the one defining the actual delay
                         if current_delay == 1:
@@ -399,7 +423,7 @@ class Application():
 
     def play_song_tick(self):
         # We've not played the first note, so start playing it
-        if self.songdata_idx == 1:
+        if self.songdata_idx == 0:
             self.play_notes(self.songdata[self.songdata_idx][0])
             self.songdata_idx += 1
         else:
@@ -419,8 +443,13 @@ class Application():
             # Update time?
             self.root.after(int(FRAME_RATE), self.play_song_tick)
         else:
-            self.enable_inputs()
-            self.sv_descriptlabel.set(HELP_STRING)
+            # Add a post song delay if we're recording keyboard presses on another thread
+            if self.post_song_delay > 0:
+                self.post_song_delay -= 1
+                self.root.after(int(FRAME_RATE), self.play_song_tick)
+            else:
+                self.enable_inputs()
+                self.sv_descriptlabel.set(HELP_STRING)
 
     def play_notes(self, note_string):
         # Add notes to the animation list
@@ -433,17 +462,24 @@ class Application():
     def animate_notes(self):
         i = 0
         while i < len(self.notes_in_animation): 
-            iterations, obj = self.notes_in_animation[i]
             # Animation is over
-            if (iterations > ITERATIONS_UNTIL_ANIM_OVER):
+            if (self.notes_in_animation[i][0] > ITERATIONS_UNTIL_ANIM_OVER):
                 self.canvas.delete(self.notes_in_animation[i][1])
-                self.notes_in_animation.pop(i)
+                self.delete_note(self.notes_in_animation.pop(i))
             else:
-                self.animate_object(i, iterations, obj)
+                self.animate_object(i, self.notes_in_animation[i])
                 # Step to next object to animate
                 i += 1
 
-    def animate_object(self, i, iterations, obj):
+    def delete_note(self, note):
+        # Optional to override
+        pass
+
+    def song_ended(self):
+        # Optional to override
+        pass
+
+    def animate_object(self, i, note_in_animation):
         print("WARNING: animate_object IS NOT IMPLEMENTED")
 
 
