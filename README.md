@@ -48,8 +48,6 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
 * **Format 2**: Notes in alphabetical format & delays on every line
   * * Each line from the 3rd line onwards denotes a new entry. Each entry is:
     * `{Note to press}{1 space}{milliseconds before the program plays the next entry}`
-      * Note that the keys to press must not have any whitespace between them.
-      * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
       * `format2_sample.txt` serves as a sample.
   * It also supports 1 command:
     * `OCT{number}`: Set the default octave (no space between OCT and number). So instead of specifying `C4`, you can just specify `C` and the program will auto-fill it to `C4` if the default octave is 4. The command can be called by putting `OCT{number}` on any new line.

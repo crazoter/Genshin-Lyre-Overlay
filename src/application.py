@@ -127,7 +127,7 @@ class Application():
         # Application variables
         self.songname = ""
         self.songdata = []
-        self.songdata_idx = 0
+        self.songdata_idx = -1
         self.notes_in_animation = []
         self.keyboard_outline_objs = []
         self.inputObjects = []
@@ -186,6 +186,7 @@ class Application():
         self.disable_inputs()
         # Now that user cannot change size of keyboard, set the bounding box expansion rate for animation
         self.post_play_press_pre_data_parse()
+        self.songdata_idx = -1
         # here I assume the user inputs the correct filename
         if self.sv_filename.get().lower().endswith('.txt'):
             self.read_music_txt()
@@ -268,7 +269,7 @@ class Application():
 
                     self.songdata[i][1] = float(self.songdata[i][1]) * self.songspeed
                     i += 1
-            elif header_format == 'format: 2':
+            elif header_format == 'format: 3':
                 i = 2
                 bpm = 120.0
                 delay_in_ms = 60 * 1000 / bpm
@@ -276,11 +277,10 @@ class Application():
                 current_sequence = ''
                 current_delay = 1
                 tmp_data = []
-                while i < len(self.songdata):
+                for i in range(len(self.songdata)):
                     self.songdata[i] = self.songdata[i].strip().upper()
                     # Ignore new lines
                     if self.songdata[i] == '' or self.songdata[i] == '\n' or self.songdata[i][0] == '/':
-                        self.songdata.pop(i)
                         continue
                     elif 'BPM' in self.songdata[i]:
                         # ensure we add the prev note in the old bpm
@@ -288,11 +288,11 @@ class Application():
                             tmp_data.append([current_sequence, current_delay * delay_in_ms])
                             current_delay = 1
                             current_sequence = ''
-                        bpm = float(self.songdata.split()[1])
+                        bpm = float(self.songdata[i].split()[1])
                         delay_in_ms = 60 * 1000 / bpm
                         continue
                     elif 'DELAY' in self.songdata[i] or '=' in self.songdata[i]:
-                        val = int(self.songdata.split()[1])
+                        val = int(self.songdata[i].split()[1])
                         # Minus one to offset the initial asusmption that the delay is 1 when we see another note
                         # However, when you use delay, you want the delay to be the one defining the actual delay
                         if current_delay == 1:
@@ -300,10 +300,10 @@ class Application():
                         if val > 0:
                             current_delay += val
                     elif 'INTERVAL' in self.songdata[i]:
-                        delay_in_ms = float(self.songdata.split()[1])
+                        delay_in_ms = float(self.songdata[i].split()[1])
                         bpm = 60 * 1000 / delay_in_ms
                     elif 'DELAY_MS' in self.songdata[i]:
-                        val = float(self.songdata.split()[1])
+                        val = float(self.songdata[i].split()[1])
                         # convert to beats
                         val = val / delay_in_ms
                         # Minus one to offset the initial asusmption that the delay is 1 when we see another note
@@ -450,17 +450,17 @@ class Application():
 
     def play_song_tick(self):
         # We've not played the first note, so start playing it
-        if self.songdata_idx == 0:
+        if self.songdata_idx == -1:
+            self.songdata_idx = 0
             self.play_notes(self.songdata[self.songdata_idx][0])
-            self.songdata_idx += 1
         else:
-            # On the current note we are on, wait until the appropriate time, then play the note (based on our frame rate)
+            # On the current note we are on, wait until the appropriate time, then play the next note (based on our frame rate)
             # I'm a little lazy to do the time delta stuff, leave that to version 2.0 or something lmao
             if self.songdata_idx < len(self.songdata):
                 self.songdata[self.songdata_idx][1] -= FRAME_RATE
                 if self.songdata[self.songdata_idx][1] <= 0:
-                    self.play_notes(self.songdata[self.songdata_idx][0])
                     self.songdata_idx += 1
+                    self.play_notes(self.songdata[self.songdata_idx][0])
 
         # If there are still more notes to animate
         if len(self.notes_in_animation) > 0 or self.songdata_idx < len(self.songdata):
