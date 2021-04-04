@@ -27,26 +27,27 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
 * After the song has ended, the user can input another filename to play that song.
 
 ### How to use the application
-* You can run the main.exe files in either `build/main.exe` or `dist/main.exe`. If you have python 3.7 on your computer, you can just run the script directly using `python3 src/main.py`.
+* You can run the main.exe files in the dist directory. If you have python 3.7 on your computer, you can just run the script directly in the src directory, so long as you have the dependencies installed.
+* If the exe does not work, open command line and run the application from the command line; this will show you the error. Open an issue and paste the screenshot or dump the error text.
 
 ### How to add songs & the syntax
 * Include your file containing the song in the same directory as the application.
 * I have included an example song in the music directory `music/sample.txt` for reference.
 
 ### Supported Syntaxes
-* The application will parse files differently based on the music file extension.
+* The application will parse files differently based on the music file extension. You can find examples for each format in the music directory within dist or src directories.
 * **.txt**: text file. In txt format. The first two lines are the same for every format under `.txt`. 
 * **First Line:** Song name
 * **Second Line:** `format: {number}`, where number represents the format number. This will determine how the program parses the file.
 * **Third line onwards:** The application will process the data based on the format number:
 * **Format 1**: Keypresses & delays on every line
     * Each line from the 3rd line onwards denotes a new entry. Each entry is:
-    * {Keys to press}{1 whitespace}{number of milliseconds before the program plays the next entry}
+    * `{Keys to press}{1 space}{milliseconds before the program plays the next entry}`
       * Note that the keys to press must not have any whitespace between them.
       * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
 * **Format 2**: Notes in alphabetical format & delays on every line
   * * Each line from the 3rd line onwards denotes a new entry. Each entry is:
-    * {Note to press}{1 whitespace}{number of milliseconds before the program plays the next entry}
+    * `{Note to press}{1 space}{milliseconds before the program plays the next entry}`
       * Note that the keys to press must not have any whitespace between them.
       * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
       * `format2_sample.txt` serves as a sample.
@@ -83,6 +84,7 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
   * The application does not detect or interact with the Genshin Impact window.
   * The application does not perform or detect any keypresses; the player is still in full control of the lyre.
   * As such, it is much more unlikely that Mihoyo will ban you for using this application (as opposed to using a macro, which can be easily detected to be producing an abnormal amount of keypresses).
+* Note that game mode tracks your keypresses but does not send anything.
 
 ### User requirements
 * Windows
