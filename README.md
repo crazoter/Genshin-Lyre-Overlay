@@ -3,7 +3,7 @@ A suite of programs built in Python to improve your lyre playing experience.
 
 Comes with exes to work out of the box for non-programmers.
 
-Update: Note that in-game keystroke detection is currently not working and I don't want to dabble too much into key hooks either. Might opt for a screenshot approach instead.
+Update: Note that in-game keystroke detection is currently not working and I don't want to dabble too much into intrusive solutions like key hooks or window detection. Might opt for a global screenshot approach instead.
 
 ## Main-overlay.py / Main-overlay.exe
 * The Window will overlay the keystrokes on the buttons for quality of life, and also animate the buttons you will have to press.
