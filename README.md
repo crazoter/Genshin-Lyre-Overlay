@@ -1,7 +1,7 @@
 # Genshin Lyre Overlay AKA Venti Sensei
-A Python program that highlights the notes when you play the lyre on Genshin Impact. 
+A suite of programs built in Python to improve your lyre playing experience.
 
-Comes with an exe to work out of the box for non-programmers.
+Comes with exes to work out of the box for non-programmers.
 
 ## Main-overlay.py / Main-overlay.exe
 * The Window will overlay the keystrokes on the buttons for quality of life, and also animate the buttons you will have to press.
@@ -9,16 +9,22 @@ Comes with an exe to work out of the box for non-programmers.
 
 Quick demo of the old version that doesn't have button mapping overlay: https://i.imgur.com/VnqTvVv.mp4
 
+## Main-overlay-game.py / Main-overlay-game.exe
+* Game Mode, allows you to play your own songs. Uses the overlay UI, but this application also tracks your keystrokes. It then gives you a score (and some comments from Venti :p).
+
 ## Main-keyboard.py / Main-keyboard.exe
 * There is an alternate UI that shows the keyboard instead, and the notes fall from the top like synthesia:
 * <img src="https://imgur.com/pAHS72u.png" width="512">
 * This version is more suitable for playing more complicated pieces, and includes a textbox for you to modify the rate at which new notes appear.
+* Do be careful. If using this mode for an extended period of time, you may experience vertigo.
 
 Platform: Windows (Code is in Python, can be ported to MacOS)
 
-## Main-overlay-game.py / Main-overlay-game.exe
-* Game Mode, allows you to play your own songs. Uses the overlay UI, but this application also tracks your keystrokes. It then gives you a score (and some comments from Venti :p).
+## Key-recorder.py / key-recorder.exe
+* Records your keypresses and turns them into handy keypress sheet music, and format 1 txt file for the overlay applications above. 
 
+## Midi Converter (C#)
+* A C# program (you will most likely need .NET Framework to run the exe in the bin directory) that allows you to convert your midi files into a format that can be used by the overlay applications above.
 ### How does it work?
 * The application creates a window that overlays all other applications, including Genshin Impact in windowed mode.
 * The user modifies the size and spacing of the circles based on their notes keyboard, and move the window such that they overlay the notes keyboard.
