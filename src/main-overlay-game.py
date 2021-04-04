@@ -101,7 +101,7 @@ class OverlayApplication(Application):
         self.redraw_outlines()
 
         # Start keyboard listener        
-        def on_release(key):
+        def on_press(key):
             # Key may not always have char (...Why isn't it just set to None?)
             if hasattr(key, 'char'):
                 key_val = key.char.upper()
@@ -119,7 +119,7 @@ class OverlayApplication(Application):
                     self.keys_and_timings_mutex.release()
 
         # Collect events until released
-        listener = keyboard.Listener(on_release=on_release)
+        listener = keyboard.Listener(on_press=on_press)
         listener.start()
 
         # Setup the listener stop function by setting it to stop on window exit
