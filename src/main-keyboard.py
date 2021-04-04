@@ -37,42 +37,21 @@ class KeyboardApplication(Application):
         # Convert white to transparent
         # self.root.wm_attributes("-transparentcolor", "white")
 
-        # create all of the main containers
-        top_frame = Frame(self.root)
-        top_frame.pack(anchor=N, expand=True, fill=X)
-        center = Frame(self.root, bg='gray2', padx=2, pady=2)
-
-        # layout all of the main containers
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-        top_frame.grid(row=0, sticky="ew")
-        center.grid(row=1, sticky="nsew")
-
-        # create the widgets for the top frame
-        label_file = Label(top_frame, text='Filepath:')
-        entry_file = Entry(top_frame, background="lavender", textvariable=self.sv_filename)
-        label_speed = Label(top_frame, text='Speed Multiplier:')
-        entry_speed = Entry(top_frame, background="lavender", textvariable=self.sv_speed)
-        button_play = Button(top_frame, text='Play', background="red", command=self.play_btn_press)
-        label_descriptlabel = Label(top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
+        label_speed = Label(self.top_frame, text='Speed Multiplier:')
+        entry_speed = Entry(self.top_frame, background="lavender", textvariable=self.sv_speed)
+        label_descriptlabel = Label(self.top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
 
         # Store in list for us to enable / disable
-        self.inputObjects.append(entry_file)
         self.inputObjects.append(entry_speed)
-        self.inputObjects.append(button_play)
 
         # layout the widgets in the top frame
-        label_file.grid(row=0, column=0)
-        entry_file.grid(row=0, column=1)
-        button_play.grid(row=0, column=2)
         label_speed.grid(row=0, column=3)
         entry_speed.grid(row=0, column=4)
         label_descriptlabel.grid(row=1, column=0, columnspan=9)
 
         # create & layout the canvas
-        center.grid_rowconfigure(0, weight=1)
-        center.grid_columnconfigure(1, weight=1)
-        self.canvas = Canvas(center, bg='white', height=500, width=(900))
+        self.canvas = Canvas(self.center, bg='white', height=500, width=(900))
+        self.canvas.grid(row=0, column=1, sticky="nsew")
         self.canvas.create_text(10, 375,fill='black', font="Times 16 bold", text='1')
         self.canvas.create_text(10, 395,fill='black', font="Times 16 bold", text='2')
         self.canvas.create_text(10, 415,fill='black', font="Times 16 bold", text='3')
@@ -93,8 +72,6 @@ class KeyboardApplication(Application):
             self.canvas.create_rectangle(offset, 350, offset + 20, 360, outline="#fb0", fill="#fb0")
             self.canvas.create_text(offset + 12, height_offset, fill=colour, font="Times 16 bold", text=key)
 
-        self.canvas.grid(row=0, column=1, sticky="nsew")
-
         self.root.mainloop()
 
     # Overriden method
@@ -110,18 +87,29 @@ class KeyboardApplication(Application):
             if c in LEFT_HAND_KEY_LIST:
                 colour = "#00f"
             self.notes_in_animation.append(
-                (0, self.canvas.create_rectangle(curr_x, 0, curr_x + 20, 10, outline=colour, fill=colour))
+                (0, self.canvas.create_rectangle(curr_x, 0, curr_x + 20, 14, outline=colour, fill=colour))
+            )
+            self.notes_in_animation.append(
+                (0, self.canvas.create_text(curr_x + 10, 6, fill='yellow', font="Times 8 bold", text=c))
             )
     
     # Overriden method
     def animate_object(self, i, note_in_animation):
         # Get coords
         iterations, obj = note_in_animation
-        x1, y1, x2, y2 = self.canvas.coords(obj)
-        # Update using expansion rate
-        self.canvas.coords(obj, 
-            x1, y1 + DROP_RATE, 
-            x2, y2 + DROP_RATE)
+        coords = self.canvas.coords(obj)
+        if len(coords) == 4:
+            # Boxes have 4 coordinates
+            x1, y1, x2, y2 = coords
+            # Update using expansion rate
+            self.canvas.coords(obj, 
+                x1, y1 + DROP_RATE, 
+                x2, y2 + DROP_RATE)
+        else:
+            # Text only have 2 coordinates
+            x, y = coords
+            # Update using expansion rate
+            self.canvas.coords(obj, x, y + DROP_RATE)
         self.notes_in_animation[i] = (iterations + 1, obj)
 
 if __name__ == "__main__":

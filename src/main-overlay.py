@@ -46,45 +46,26 @@ class OverlayApplication(Application):
         self.sv_x_spacing = StringVar(self.root, value=str(60))
         self.sv_y_spacing = StringVar(self.root, value=str(44))
 
-        # create all of the main containers
-        top_frame = Frame(self.root)
-        top_frame.pack(anchor=N, expand=True, fill=X)
-        center = Frame(self.root, bg='gray2', padx=2, pady=2)
-
-        # layout all of the main containers
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-        top_frame.grid(row=0, sticky="ew")
-        center.grid(row=1, sticky="nsew")
-
         # Make write callbacks whenever the SVs are modified; this allows us to update the outlines as needed
         self.sv_radius.trace_add("write", lambda name, index, mode, sv=self.sv_radius: self.reformat_outlines_callback(self.sv_radius))
         self.sv_y_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_y_spacing: self.reformat_outlines_callback(self.sv_y_spacing))
         self.sv_x_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_x_spacing: self.reformat_outlines_callback(self.sv_x_spacing))
 
         # create the widgets for the top frame
-        label_file = Label(top_frame, text='Filepath:')
-        entry_file = Entry(top_frame, background="lavender", textvariable=self.sv_filename)
-        label_radius = Label(top_frame, text='Circle radius')
-        entry_radius = Entry(top_frame, background="lavender", textvariable=self.sv_radius)
-        label_x_spacing = Label(top_frame, text='Circle x spacing')
-        entry_x_spacing = Entry(top_frame, background="lavender", textvariable=self.sv_x_spacing)
-        label_y_spacing = Label(top_frame, text='Circle y spacing')
-        entry_y_spacing = Entry(top_frame, background="lavender", textvariable=self.sv_y_spacing)
-        button_play = Button(top_frame, text='Play', background="red", command=self.play_btn_press)
-        label_descriptlabel = Label(top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
+        label_radius = Label(self.top_frame, text='Circle radius')
+        entry_radius = Entry(self.top_frame, background="lavender", textvariable=self.sv_radius)
+        label_x_spacing = Label(self.top_frame, text='Circle x spacing')
+        entry_x_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_x_spacing)
+        label_y_spacing = Label(self.top_frame, text='Circle y spacing')
+        entry_y_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_y_spacing)
+        label_descriptlabel = Label(self.top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
 
         # Store in list for us to enable / disable
-        self.inputObjects.append(entry_file)
         self.inputObjects.append(entry_radius)
         self.inputObjects.append(entry_x_spacing)
         self.inputObjects.append(entry_y_spacing)
-        self.inputObjects.append(button_play)
 
         # layout the widgets in the top frame
-        label_file.grid(row=0, column=0)
-        entry_file.grid(row=0, column=1)
-        button_play.grid(row=0, column=2)
         label_radius.grid(row=0, column=3)
         entry_radius.grid(row=0, column=4)
         label_x_spacing.grid(row=0, column=5)
@@ -93,15 +74,11 @@ class OverlayApplication(Application):
         entry_y_spacing.grid(row=0, column=8)
         label_descriptlabel.grid(row=1, column=0, columnspan=9)
 
-        # create & layout the canvas
-        center.grid_rowconfigure(0, weight=1)
-        center.grid_columnconfigure(1, weight=1)
-
         r = int(self.sv_radius.get())
         x_offset = int(self.sv_x_spacing.get())
         y_offset = int(self.sv_y_spacing.get())
 
-        self.canvas = Canvas(center, bg='white', height=((r+y_offset) * (BUTTON_ROWS + 2)), width=((r+x_offset) * (BUTTON_COLS + 2)))
+        self.canvas = Canvas(self.center, bg='white', height=((r+y_offset) * (BUTTON_ROWS + 2)), width=((r+x_offset) * (BUTTON_COLS + 2)))
         self.canvas.grid(row=0, column=1, sticky="nsew")
 
         self.redraw_outlines()

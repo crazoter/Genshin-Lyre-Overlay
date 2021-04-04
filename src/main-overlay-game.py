@@ -7,11 +7,9 @@
 # install PIL using pip3 install pillow
 # install pynput using pip3 install pynput
 import queue
-# import keyboard  
-import threading
 import random
 from multiprocessing import Process, Lock
-from pynput.keyboard import Key, Listener
+from pynput import keyboard
 import time
 import json
 
@@ -20,23 +18,6 @@ from typing import List
 from tkinter import *
 from tkinter import messagebox
 from PIL import ImageTk, Image
-
-"""
-def app_keyboard_loop(my_application):
-    # Create another thread that monitors the keyboard
-    while True:
-        if not my_application.ui_enabled:
-            my_application.keys_and_timings_mutex.acquire()
-            if c in my_application.keys_and_timings_to_track:
-                my_application.keys_and_timings_to_track[c] += 1
-            else:
-                my_application.keys_and_timings_to_track[c] = 1
-            my_application.scoreables += 1
-            my_application.keys_and_timings_mutex.release()
-            if keyboard.is_pressed('esc'):
-                my_application.score += 1
-        time.sleep(0.1)  # seconds
-"""
 
 # Helper functions
 def radius_to_bounding_box(x, y, r):
@@ -53,7 +34,7 @@ Canvas.update_object = _update_object
 class OverlayApplication(Application):
     def __init__(self):
         super().__init__()
-        
+        self.root.title('Teach me the lyre, Venti Sensei! (Game Mode)')
         self.notes_in_animation = []
         # Precomputed value, we will add this expansion rate to expand the bounding box with every animation tick
         self.bbox_expansion_rate_per_frame = 0
@@ -78,46 +59,27 @@ class OverlayApplication(Application):
         self.sv_y_spacing = StringVar(self.root, value=str(44))
         self.sv_scorelabel = StringVar(self.root, value="Score: ")
 
-        # create all of the main containers
-        top_frame = Frame(self.root)
-        top_frame.pack(anchor=N, expand=True, fill=X)
-        center = Frame(self.root, bg='gray2', padx=2, pady=2)
-
-        # layout all of the main containers
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-        top_frame.grid(row=0, sticky="ew")
-        center.grid(row=1, sticky="nsew")
-
         # Make write callbacks whenever the SVs are modified; this allows us to update the outlines as needed
         self.sv_radius.trace_add("write", lambda name, index, mode, sv=self.sv_radius: self.reformat_outlines_callback(self.sv_radius))
         self.sv_y_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_y_spacing: self.reformat_outlines_callback(self.sv_y_spacing))
         self.sv_x_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_x_spacing: self.reformat_outlines_callback(self.sv_x_spacing))
 
         # create the widgets for the top frame
-        label_file = Label(top_frame, text='Filepath:')
-        entry_file = Entry(top_frame, background="lavender", textvariable=self.sv_filename)
-        label_radius = Label(top_frame, text='Circle radius')
-        entry_radius = Entry(top_frame, background="lavender", textvariable=self.sv_radius)
-        label_x_spacing = Label(top_frame, text='Circle x spacing')
-        entry_x_spacing = Entry(top_frame, background="lavender", textvariable=self.sv_x_spacing)
-        label_y_spacing = Label(top_frame, text='Circle y spacing')
-        entry_y_spacing = Entry(top_frame, background="lavender", textvariable=self.sv_y_spacing)
-        button_play = Button(top_frame, text='Play', background="red", command=self.play_btn_press)
-        label_descriptlabel = Label(top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
-        label_score = Label(top_frame, text='', textvariable=self.sv_scorelabel)
+        label_radius = Label(self.top_frame, text='Circle radius')
+        entry_radius = Entry(self.top_frame, background="lavender", textvariable=self.sv_radius)
+        label_x_spacing = Label(self.top_frame, text='Circle x spacing')
+        entry_x_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_x_spacing)
+        label_y_spacing = Label(self.top_frame, text='Circle y spacing')
+        entry_y_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_y_spacing)
+        label_descriptlabel = Label(self.top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
+        label_score = Label(self.top_frame, text='', textvariable=self.sv_scorelabel)
 
         # Store in list for us to enable / disable
-        self.inputObjects.append(entry_file)
         self.inputObjects.append(entry_radius)
         self.inputObjects.append(entry_x_spacing)
         self.inputObjects.append(entry_y_spacing)
-        self.inputObjects.append(button_play)
 
         # layout the widgets in the top frame
-        label_file.grid(row=0, column=0)
-        entry_file.grid(row=0, column=1)
-        button_play.grid(row=0, column=2)
         label_radius.grid(row=0, column=3)
         entry_radius.grid(row=0, column=4)
         label_x_spacing.grid(row=0, column=5)
@@ -128,14 +90,12 @@ class OverlayApplication(Application):
         label_score.grid(row=2, column=0, columnspan=9)
 
         # create & layout the canvas
-        center.grid_rowconfigure(0, weight=1)
-        center.grid_columnconfigure(1, weight=1)
 
         r = int(self.sv_radius.get())
         x_offset = int(self.sv_x_spacing.get())
         y_offset = int(self.sv_y_spacing.get())
 
-        self.canvas = Canvas(center, bg='white', height=((r+y_offset) * (BUTTON_ROWS + 2)), width=((r+x_offset) * (BUTTON_COLS + 2)))
+        self.canvas = Canvas(self.center, bg='white', height=((r+y_offset) * (BUTTON_ROWS + 2)), width=((r+x_offset) * (BUTTON_COLS + 2)))
         self.canvas.grid(row=0, column=1, sticky="nsew")
 
         self.redraw_outlines()
@@ -159,7 +119,7 @@ class OverlayApplication(Application):
                     self.keys_and_timings_mutex.release()
 
         # Collect events until released
-        listener = Listener(on_release=on_release)
+        listener = keyboard.Listener(on_release=on_release)
         listener.start()
 
         # Setup the listener stop function by setting it to stop on window exit
@@ -267,42 +227,48 @@ class OverlayApplication(Application):
     
     # override
     def song_ended(self):
-        final_score = (self.score - self.false_notes) / (self.scoreables * 1.0)
+        final_score = (self.score - 0.5 * (self.false_notes)) / (self.scoreables * 1.0)
         print(final_score)
         venti_verdict = ""
+        stars = "☆☆☆"
         if final_score < 0.33:
+            stars = "★☆☆"
             chars = ['Klee', 'Razor', 'Bennett', 'Mona']
             venti_verdict = (
                 "Umm... You... Don't really have a sense of rhythm do you? Don't give up! "
                 "Maybe I can ask {0} to coach you...\n\nRank: Musical Hobbyist"
             ).format(chars[random.randint(0,3)])
         elif final_score < 0.66:
+            stars = "★★☆"
             chars = ['Noelle', 'Lisa', 'Kaeya', 'Jean']
             venti_verdict = (
-                "Not bad, not bad. You are almost as good as {0}. Keep up the good work!"
+                "Not bad, not bad. You are almost as good as {0}. Keep practicing!"
                 "\n\nRank: Rising Star"
             ).format(chars[random.randint(0,3)])
         elif final_score < 0.99:
-            chars = ['Albedo', 'Diluc', 'Barbara']
+            stars = "★★★"
+            chars = ['me', 'Albedo', 'Diluc', 'Barbara']
             venti_verdict = (
                 "Wow, that must've taken a lot of practice... Or are you just talented?"
                 "Would you mind playing a duet with {0} sometime? Haha..."
                 "\n\nRank: Windblume Laureate"
-            ).format(chars[random.randint(0,2)])
+            ).format(chars[random.randint(0,3)])
         else:
+            stars = "★PERFECT★"
             venti_verdict = (
                 "Incredible. That was perfect. I don't think I could've played much better myself!"
-                "\n\nRank: Perfect, like Diluc's Dandelion Wine. Or Diona's Special. I can't decide which drink is better."
+                "\n\nRank: Perfect, like Diluc's Dandelion Wine. Or Diona's Special. Hm, I can't decide which drink is better."
             )
+        final_score = self.score - 0.5 * (self.false_notes)
         messagebox.showinfo("Venti listened to your song and gives his verdict", 
             (
-                "Your score: {0}/{1} notes hit - {2} wrong notes played = {3}"
-                "\n\nVenti Says:\n{4}"
-            ).format(self.score, self.scoreables, self.false_notes, self.score - self.false_notes, venti_verdict)
+                "Score: {0} ({1})"
+                "\n\n{2}"
+            ).format(stars, final_score, venti_verdict)
         )
 
     def update_score(self):
-        self.sv_scorelabel.set("Score: {0}/{1} notes hit - {2} wrong notes played = {3}".format(self.score, self.scoreables, self.false_notes, self.score - self.false_notes))
+        self.sv_scorelabel.set("Score: {0}/{1} notes hit - 1/2 * {2} wrong notes played = {3}".format(self.score, self.scoreables, self.false_notes, self.score - 0.5 * (self.false_notes)))
 
 if __name__ == "__main__":
     my_application = OverlayApplication()

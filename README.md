@@ -1,5 +1,7 @@
 # Genshin Lyre Overlay AKA Venti Sensei
-A Python program that highlights the notes when you play the lyre on Genshin Impact. Comes with an exe to work out of the box for non-programmers.
+A Python program that highlights the notes when you play the lyre on Genshin Impact. 
+
+Comes with an exe to work out of the box for non-programmers.
 
 ## Main-overlay.py / Main-overlay.exe
 * The Window will overlay the keystrokes on the buttons for quality of life, and also animate the buttons you will have to press.
@@ -13,6 +15,9 @@ Quick demo of the old version that doesn't have button mapping overlay: https://
 * This version is more suitable for playing more complicated pieces, and includes a textbox for you to modify the rate at which new notes appear.
 
 Platform: Windows (Code is in Python, can be ported to MacOS)
+
+## Main-overlay-game.py / Main-overlay-game.exe
+* Game Mode, allows you to play your own songs. Uses the overlay UI, but this application also tracks your keystrokes. It then gives you a score (and some comments from Venti :p).
 
 ### How does it work?
 * The application creates a window that overlays all other applications, including Genshin Impact in windowed mode.
@@ -58,7 +63,9 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
     * Wrapping multiple keystrokes with brackets e.g. `(AQW)` signifies that they are played on the same beat.
   * **Commands**: Every command must start on a new line, and any keystrokes that follow after the command must start on a new line. The supported commands are:
     * **Set BPM**: `BPM {number}`: Set the BPM to the number specified for the rest of the keystrokes.
-    * **Delay keypresses**: `DELAY {number}`: Add a pause between the previous keystrokes and the next. The number represents the number of beats we skip ahead.
+    * **Set BPM using ms**: `INTERVAL {milliseconds}`: Set the BPM by specifying the number of milliseconds between each beat.
+    * **Delay keypresses**: `DELAY {number}` or `= {number}`: Add a pause between the previous keystrokes and the next. The number represents the number of beats we skip ahead.
+    * **Delay keypresses (ms)**: `DELAY_MS {milliseconds}`: Add a pause between the previous keystrokes and the next by specifying the number of milliseconds instead.
   * Comments (any new lines prefixed by `/`) will be ignored by the parser.
 * **.json**: [Sky Music](https://sky-music.herokuapp.com/) format exported directly from the herokuapp in JSON format (you have to rename the .txt file extension to .json). 
   * No modification by the user is required. Note that BPM is not factored into this application.
@@ -82,8 +89,11 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
 * Unknown lmao I need more people to help me test this
 ### Development requirements
 * Main Application
-  * Python3, Tkinter, PIL is sufficient to run the python script without compiling.
-  * If compiling the python script as executables: [PyInstaller](https://stackoverflow.com/questions/5458048/how-can-i-make-a-python-script-standalone-executable-to-run-without-any-dependen)
+  * Python3, Tkinter, PIL, pynput is sufficient to run the python script without compiling.
+  * If compiling the python script as executables: 
+    * [PyInstaller](https://stackoverflow.com/questions/5458048/how-can-i-make-a-python-script-standalone-executable-to-run-without-any-dependen)
+    * [Compiling as 1 exe](https://stackoverflow.com/questions/53678993/pyinstaller-importerror-error-how-to-solve-it)
+    * [Issue with pynput: must install with "pip install pynput==1.6.8"](https://stackoverflow.com/questions/63681770/getting-error-when-using-pynput-with-pyinstaller)
 * Midi Converter
   * C#, .NET Framework 5.0
 

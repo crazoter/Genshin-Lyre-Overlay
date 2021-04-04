@@ -142,6 +142,33 @@ class Application():
 
         self.root.title('Teach me the lyre, Venti Sensei!')
 
+        # create all of the main containers
+        self.top_frame = Frame(self.root)
+        self.top_frame.pack(anchor=N, expand=True, fill=X)
+        self.center = Frame(self.root, bg='gray2', padx=2, pady=2)
+
+        # layout all of the main containers
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.top_frame.grid(row=0, sticky="ew")
+        self.center.grid(row=1, sticky="nsew")
+
+        # Common elements
+        self.label_file = Label(self.top_frame, text='Filepath:')
+        self.entry_file = Entry(self.top_frame, background="lavender", textvariable=self.sv_filename)
+        self.button_play = Button(self.top_frame, text='Play', background="red", command=self.play_btn_press)
+        self.entry_file.focus_set()
+        self.button_play.bind("<Return>", self.play_btn_press)
+        self.inputObjects.append(self.entry_file)
+        self.inputObjects.append(self.button_play)
+
+        self.label_file.grid(row=0, column=0)
+        self.entry_file.grid(row=0, column=1)
+        self.button_play.grid(row=0, column=2)
+
+        self.center.grid_rowconfigure(0, weight=1)
+        self.center.grid_columnconfigure(1, weight=1)
+
     def disable_inputs(self):
         self.ui_enabled = False
         self.post_song_delay = 10
@@ -154,7 +181,7 @@ class Application():
         self.ui_enabled = True
         self.song_ended()
 
-    def play_btn_press(self):
+    def play_btn_press(self, event=' '):
         # Disable inputs and pre_compute animation constants
         self.disable_inputs()
         # Now that user cannot change size of keyboard, set the bounding box expansion rate for animation
