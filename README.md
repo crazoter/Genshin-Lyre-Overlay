@@ -51,6 +51,8 @@ Platform: Windows (Code is in Python, can be ported to MacOS)
     * `{Keys to press}{1 space}{milliseconds before the program plays the next entry}`
       * Note that the keys to press must not have any whitespace between them.
       * e.g. `QWE 1290` will prompt the user to press QWE at the same time, and wait 1290ms before prompting the next entry.
+    * Format 1 supports one command:
+    * **Add a multiplier to key speed**: `SPEED {multiplier}`. For example, putting `SPEED 1.2` on the third line will make all subsequent notes play at x1.2 speed. This can be useful if you recorded at a slower pace, but want the actual song to play at a faster tempo.
 * **Format 2**: Notes in alphabetical format & delays on every line
   * * Each line from the 3rd line onwards denotes a new entry. Each entry is:
     * `{Note to press}{1 space}{milliseconds before the program plays the next entry}`

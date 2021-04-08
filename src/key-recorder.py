@@ -1,11 +1,7 @@
-"""
-    This program contains code adapted from: Lyre Midi Player (https://github.com/3096/genshin_scripts/blob/main/midi.py) 
-    which is under the GNU General Public License.
-"""
-
 # Requirements: Python3, Tkinter, PIL, pynput
 # install PIL using pip3 install pillow
 # install pynput using pip3 install pynput
+
 from multiprocessing import Process, Lock
 from pynput import keyboard
 import time
@@ -19,6 +15,8 @@ class KeyRecordApplication():
     def __init__(self):
         super().__init__()
         self.root = Tk()
+        # Make the self.root window always on top
+        self.root.wm_attributes("-topmost", True)
         self.root.title('Record pressed keys. You must press an arbitrary button to record the last key.')
 
         # create the string values for the entries that invoke an event after being changed
@@ -42,7 +40,7 @@ class KeyRecordApplication():
             text.delete(1.0, END)
             text.insert(END, value)
 
-        append_txt(text_format1, "Song Name\nFormat: 1\n")
+        append_txt(text_format1, "Song Name\nFormat: 1\nSPEED 1.0\n")
         # Delete the persistent starting new line 
         # text_format1.delete(1.0)
 

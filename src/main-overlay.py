@@ -1,8 +1,3 @@
-"""
-    This program contains code adapted from: Lyre Midi Player (https://github.com/3096/genshin_scripts/blob/main/midi.py) 
-    which is under the GNU General Public License.
-"""
-
 # Requirements: Python3, Tkinter, PIL
 # install PIL using pip install pillow
 import time
@@ -83,15 +78,13 @@ class OverlayApplication(Application):
 
         self.redraw_outlines()
 
-        self.root.mainloop()
-
     def reformat_outlines_callback(self, sv):
         if (sv.get().isdigit()):
             self.redraw_outlines()
             return True
         return False
         
-    def redraw_outlines(self):
+    def redraw_outlines(self, draw_labels = True):
         self.canvas.delete("all")
         r = int(self.sv_radius.get())
         x_offset = int(self.sv_x_spacing.get())
@@ -103,8 +96,9 @@ class OverlayApplication(Application):
         for i in range(BUTTON_ROWS):
             for j in range(BUTTON_COLS):
                 self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, r, outline="red", width=3))
-                self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, 11, outline="#FFF9EF", fill="#FFF9EF"))
-                self.keyboard_outline_objs.append(self.canvas.create_text(curr_x, curr_y,fill="black",font="Times 14 bold", text=KEYS[i][j]))
+                if draw_labels:
+                    self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, 11, outline="#FFF9EF", fill="#FFF9EF"))
+                    self.keyboard_outline_objs.append(self.canvas.create_text(curr_x, curr_y,fill="black",font="Times 14 bold", text=KEYS[i][j]))
                 curr_x += r + x_offset
             curr_x = r + x_offset
             curr_y += r + y_offset
@@ -132,7 +126,6 @@ class OverlayApplication(Application):
     def post_play_press_pre_data_parse(self):
         self.set_bbox_expansion_rate_per_frame()
         self.set_charmap()
-        self.songdata_idx = 0
 
     # Overriden method
     def play_char_note(self, c):
@@ -155,3 +148,4 @@ class OverlayApplication(Application):
 
 if __name__ == "__main__":
     my_application = OverlayApplication()
+    my_application.start()

@@ -1,8 +1,3 @@
-"""
-    This program contains code adapted from: Lyre Midi Player (https://github.com/3096/genshin_scripts/blob/main/midi.py) 
-    which is under the GNU General Public License.
-"""
-
 # Requirements: Python3, Tkinter, PIL, pynput
 # install PIL using pip3 install pillow
 # install pynput using pip3 install pynput
@@ -129,9 +124,6 @@ class OverlayApplication(Application):
 
         # Since we're using a 2nd thread for keypress detection, we'll need to handle the GUI closing fx
         self.root.protocol("WM_DELETE_WINDOW", on_closing)
-
-        self.root.mainloop()
-
 
     def reformat_outlines_callback(self, sv):
         if (sv.get().isdigit()):
@@ -272,6 +264,7 @@ class OverlayApplication(Application):
 
 if __name__ == "__main__":
     my_application = OverlayApplication()
+    my_application.start()
     # Run the app's main logic loop in a different thread
     #main_loop_thread = threading.Thread(target=app_keyboard_loop, args=(my_application, ))
     #main_loop_thread.daemon = True

@@ -168,6 +168,9 @@ class Application():
 
         self.center.grid_rowconfigure(0, weight=1)
         self.center.grid_columnconfigure(1, weight=1)
+    
+    def start(self):
+        self.root.mainloop()
 
     def disable_inputs(self):
         self.ui_enabled = False
@@ -185,6 +188,7 @@ class Application():
         # Disable inputs and pre_compute animation constants
         self.disable_inputs()
         # Now that user cannot change size of keyboard, set the bounding box expansion rate for animation
+        self.songspeed = 1
         self.post_play_press_pre_data_parse()
         self.songdata_idx = -1
         # here I assume the user inputs the correct filename
@@ -219,11 +223,18 @@ class Application():
                 # I expect the buttons to be pressed (no spaces), and the duration (in milliseconds) to the next series of buttons to be pressed.
                 # These two things have to be separated by a space.
                 # e.g. "QWAD 120" means the program will signal you to press QWAD at the same time for this iteration, and wait 120ms before it plays the next line.
-                for i in range(len(self.songdata)):
+                i = 0
+                while i in range(len(self.songdata)):
                     # [Keys,ms to next]
-                    self.songdata[i] = self.songdata[i].strip().split()
+                    val = self.songdata[i].strip()
+                    if "SPEED" in val:
+                        self.songspeed = float(val.split()[1])
+                        self.songdata.pop(0)
+                        continue
+                    self.songdata[i] = val.split()
                     self.songdata[i][0] = self.songdata[i][0].upper()
                     self.songdata[i][1] = float(self.songdata[i][1]) * self.songspeed
+                    i += 1
             elif header_format == 'format: 2':
                 i = 2
                 current_default_octave = 3

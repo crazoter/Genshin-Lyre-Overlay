@@ -1,8 +1,3 @@
-"""
-    This program contains code adapted from: Lyre Midi Player (https://github.com/3096/genshin_scripts/blob/main/midi.py) 
-    which is under the GNU General Public License.
-"""
-
 # Requirements: Python3, Tkinter, PIL
 # install PIL using pip install pillow
 import time
@@ -72,11 +67,8 @@ class KeyboardApplication(Application):
             self.canvas.create_rectangle(offset, 350, offset + 20, 360, outline="#fb0", fill="#fb0")
             self.canvas.create_text(offset + 12, height_offset, fill=colour, font="Times 16 bold", text=key)
 
-        self.root.mainloop()
-
     # Overriden method
     def post_play_press_pre_data_parse(self):
-        self.songdata_idx = 0
         self.songspeed = 1 / float(self.sv_speed.get())
 
     # Overriden method
@@ -114,3 +106,4 @@ class KeyboardApplication(Application):
 
 if __name__ == "__main__":
     my_application = KeyboardApplication()
+    my_application.start()
