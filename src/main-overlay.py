@@ -2,6 +2,7 @@
 # install PIL using pip install pillow
 import time
 import json
+import os
 
 from application import *
 from typing import List
@@ -36,10 +37,26 @@ class OverlayApplication(Application):
         # Convert white to transparent
         self.root.wm_attributes("-transparentcolor", "white")
 
-        # create the string values for the entries that invoke an event after being changed
         self.sv_radius = StringVar(self.root, value=str(29))
         self.sv_x_spacing = StringVar(self.root, value=str(60))
         self.sv_y_spacing = StringVar(self.root, value=str(44))
+
+        # https://stackoverflow.com/questions/713794/catching-an-exception-while-using-a-python-with-statement
+        try:
+            with open("config.txt", "r") as f:
+                for line in f:
+                    if "radius" in line:
+                        self.sv_radius.set(line.strip().split()[1])
+                    if "x_spacing" in line:
+                        self.sv_x_spacing.set(line.strip().split()[1])
+                    if "y_spacing" in line:
+                        self.sv_y_spacing.set(line.strip().split()[1])
+        except IOError: 
+            print("config.txt file couldn't be opened (you may want to have one in the same directory)")
+        except IndexError:
+            print("config.txt file is incorrectly formatted")
+
+        # create the string values for the entries that invoke an event after being changed
 
         # Make write callbacks whenever the SVs are modified; this allows us to update the outlines as needed
         self.sv_radius.trace_add("write", lambda name, index, mode, sv=self.sv_radius: self.reformat_outlines_callback(self.sv_radius))
@@ -77,6 +94,20 @@ class OverlayApplication(Application):
         self.canvas.grid(row=0, column=1, sticky="nsew")
 
         self.redraw_outlines()
+
+        # Setup the listener stop function by setting it to stop on window exit
+
+        # Since we're using a 2nd thread for keypress detection, we'll need to handle the GUI closing fx
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def on_closing(self):
+        with open("config.txt", "w") as f:
+            f.write('radius: {0}\nx_spacing: {1}\ny_spacing: {2}'.format(
+                self.sv_radius.get(),
+                self.sv_x_spacing.get(),
+                self.sv_y_spacing.get()
+            ))
+        self.root.destroy()
 
     def reformat_outlines_callback(self, sv):
         if (sv.get().isdigit()):
