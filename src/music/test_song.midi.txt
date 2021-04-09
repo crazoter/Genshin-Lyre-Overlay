@@ -1,3 +1,5 @@
+Name: test song
+Speed: 0.8
 48 15
 50 195
 52 472

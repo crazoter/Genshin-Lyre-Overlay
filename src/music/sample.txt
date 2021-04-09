@@ -25,7 +25,7 @@ NN-B-A-
 	DFGHJQWE
 	= 8
 
-BPM 160he
+BPM 160
 HH--
 QJQW---
 

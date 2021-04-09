@@ -1,13 +1,15 @@
+"""
+    main-overlay.py
+
+"""
+
 # Requirements: Python3, Tkinter, PIL
-# install PIL using pip install pillow
 import time
 import json
 import os
 
 from application import *
-from typing import List
 from tkinter import *
-from PIL import ImageTk, Image
 
 # Helper functions
 def radius_to_bounding_box(x, y, r):
@@ -90,7 +92,7 @@ class OverlayApplication(Application):
         x_offset = int(self.sv_x_spacing.get())
         y_offset = int(self.sv_y_spacing.get())
 
-        self.canvas = Canvas(self.center, bg='white', height=((r+y_offset) * (BUTTON_ROWS + 2)), width=((r+x_offset) * (BUTTON_COLS + 2)))
+        self.canvas = Canvas(self.center, bg='white', height=((y_offset + r) * (self.BUTTON_ROWS + 1)), width=((x_offset + r) * (self.BUTTON_COLS + 1)))
         self.canvas.grid(row=0, column=1, sticky="nsew")
 
         self.redraw_outlines()
@@ -123,8 +125,8 @@ class OverlayApplication(Application):
         curr_x = r + x_offset
         curr_y = r + y_offset
         
-        for i in range(BUTTON_ROWS):
-            for j in range(BUTTON_COLS):
+        for i in range(self.BUTTON_ROWS):
+            for j in range(self.BUTTON_COLS):
                 self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, r, outline="red", width=3))
                 if draw_labels:
                     self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, 11, outline="#FFF9EF", fill="#FFF9EF"))
@@ -135,7 +137,7 @@ class OverlayApplication(Application):
 
     def set_bbox_expansion_rate_per_frame(self):
         bounding_box_width = int(self.sv_radius.get())
-        self.bbox_expansion_rate_per_frame = bounding_box_width / 1000.0 * FRAME_RATE / (SECONDS_TO_START_ANIMATION * 1.0)
+        self.bbox_expansion_rate_per_frame = bounding_box_width / 1000.0 * self.FRAME_RATE / (self.SECONDS_TO_START_ANIMATION * 1.0)
 
     def set_charmap(self):
         r = int(self.sv_radius.get())

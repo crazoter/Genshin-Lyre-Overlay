@@ -1,6 +1,14 @@
 """
     This program contains code adapted from: Lyre Midi Player (https://github.com/3096/genshin_scripts/blob/main/midi.py) 
     which is under the GNU General Public License.
+
+    Application.py: 
+    Contains:
+        - the base application class
+        - file parsing code
+        - definition of commonly used variables & tkinter objects
+        - definition of functions to be overrided by subclasses
+
 """
 
 # Requirements: Python3, Tkinter, PIL
@@ -19,15 +27,8 @@ from PIL import ImageTk, Image
 # https://stackoverflow.com/questions/34276663/tkinter-gui-layout-using-frames-and-grid
 
 # Constants
-BUTTON_ROWS = 3
-BUTTON_COLS = 7
-SECONDS_TO_START_ANIMATION = 4        # Number of seconds before we begin animating the circle
-FPS = 30.0
-ITERATIONS_UNTIL_ANIM_OVER = FPS * SECONDS_TO_START_ANIMATION
-FRAME_RATE = 1000/FPS                # This will also affect the accuracy of your songs
-DELAY_AFTER_PLAY_PRESSED = 2000
 
-HELP_STRING = "Configure the circles to fit your notes by modifying the values in the textboxes (current values are for 1280x720). Then, input the correct filename & hit play :)"
+HELP_STRING = "Configure the circles to fit your notes by modifying the values in the textboxes. Then, input the correct filename & hit play :)"
 
 KEYS = [['Q','W','E','R','T','Y','U'],
     ['A','S','D','F','G','H','J'],
@@ -86,32 +87,32 @@ NOTE_TO_KEY_MAP = {
 
 # Lifted from https://github.com/3096/genshin_scripts/blob/main/midi.py
 # Used for auto root finding
-LOWEST = 48
+LOWEST = 48 # This is actually the base
 HIGHEST = 84
 BOOL_USE_COUNT = True
 class NoteKeyMap:
     KEY_STEPS = [
-        (0, 'z'),
-        (2, 'x'),
-        (4, 'c'),
-        (5, 'v'),
-        (7, 'b'),
-        (9, 'n'),
-        (11, 'm'),
-        (12, 'a'),
-        (14, 's'),
-        (16, 'd'),
-        (17, 'f'),
-        (19, 'g'),
-        (21, 'h'),
-        (23, 'j'),
-        (24, 'q'),
-        (26, 'w'),
-        (28, 'e'),
-        (29, 'r'),
-        (31, 't'),
-        (33, 'y'),
-        (35, 'u')
+        (0, 'Z'),
+        (2, 'X'),
+        (4, 'C'),
+        (5, 'V'),
+        (7, 'B'),
+        (9, 'N'),
+        (11, 'M'),
+        (12, 'A'),
+        (14, 'S'),
+        (16, 'D'),
+        (17, 'F'),
+        (19, 'G'),
+        (21, 'H'),
+        (23, 'J'),
+        (24, 'Q'),
+        (26, 'W'),
+        (28, 'E'),
+        (29, 'R'),
+        (31, 'T'),
+        (33, 'Y'),
+        (35, 'U')
     ]
 
     def __init__(self, root_note):
@@ -120,10 +121,34 @@ class NoteKeyMap:
             self.map[root_note + key_step[0]] = key_step[1].upper()
 
     def get_key(self, note):
-        return self.map.get(note)
+        if note in self.map:
+            return self.map.get(note)
+        else:
+            # Shift up?
+            if note + 1 in self.map:
+                return self.map.get(note+1)
+            if note - 1 in self.map:
+                return self.map.get(note-1)
+        return None
+
+def isfloat(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 class Application():
     def __init__(self):
+        # Overridable / Customizable constants
+        self.BUTTON_ROWS = 3
+        self.BUTTON_COLS = 7
+        self.FPS = 30.0
+        self.SECONDS_TO_START_ANIMATION = 4        # Number of seconds before we begin animating the circle
+        self.ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.SECONDS_TO_START_ANIMATION
+        self.FRAME_RATE = 1000/ self.FPS           # This will also affect the accuracy of your songs
+        self.DELAY_AFTER_PLAY_PRESSED = 2000
+
         # Application variables
         self.songname = ""
         self.songdata = []
@@ -180,6 +205,9 @@ class Application():
 
         self.center.grid_rowconfigure(0, weight=1)
         self.center.grid_columnconfigure(1, weight=1)
+
+        self.kb_canvas = None
+
     
     def on_closing(self, call_root_destroy):
         print("app closing")
@@ -215,15 +243,15 @@ class Application():
         self.post_play_press_pre_data_parse()
         self.songdata_idx = -1
         # here I assume the user inputs the correct filename
-        if self.sv_filename.get().lower().endswith('.txt'):
+        if self.sv_filename.get().lower().endswith('.midi.txt'):
+            self.read_music_txtmidi()
+            self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+        elif self.sv_filename.get().lower().endswith('.txt'):
             self.read_music_txt()
-            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+            self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
         elif self.sv_filename.get().lower().endswith('.json'):
             self.read_music_sky_json()
-            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
-        elif self.sv_filename.get().lower().endswith('.txtmidi'):
-            self.read_music_txtmidi()
-            self.root.after(DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+            self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
         #elif self.sv_filename.get().lower().endswith('.midi'):
         #    print("not yet supported")
         else: # Nothing happened because we don't support any of the file formats
@@ -397,15 +425,15 @@ class Application():
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
-                    current_frame = int(data['songNotes'][0]['time'] / FRAME_RATE * self.songspeed)
+                    current_frame = int(data['songNotes'][0]['time'] / self.FRAME_RATE * self.songspeed)
                 else:
-                    frame = int(pair['time'] / FRAME_RATE)
+                    frame = int(pair['time'] / self.FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
                     if (frame == current_frame):
                         self.songdata[idx][0] += SKY_JSON_NOTE_MAP[pair['key']]
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE * self.songspeed)
+                        self.songdata[idx][1] = float((frame - current_frame) * self.FRAME_RATE * self.songspeed)
                         # Add the next note to play x frames from now
                         self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
                         current_frame = frame
@@ -418,6 +446,9 @@ class Application():
         print("Reading TXTMIDI")
         with open(self.sv_filename.get()) as file:
             songdata_tmp = file.readlines() 
+            # I don't really know how accurate the auto root system is, so I'll just fix it at the proper value
+            best_key_map = NoteKeyMap(48)
+            """
             note_count = {}
             for i in range(len(songdata_tmp)):
                 songdata_tmp[i] = songdata_tmp[i].split(' ')
@@ -452,18 +483,26 @@ class Application():
                     best_root = cur_root
 
             print(f"auto root found root at {best_root} with {best_hits}/{total} ({best_hits / total})")
-            
+            """
             self.songdata.clear()
             idx = 0
             current_frame = -1
             # 0: key, 1: time
             for pair in songdata_tmp:
+                if "NAME" in pair.upper():
+                    self.songname = pair
+                    songdata_tmp.pop(0)
+                    continue
+                if "SPEED" in pair.upper():
+                    self.songspeed = float(pair.split()[1])
+                    songdata_tmp.pop(0)
+                    continue
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([best_key_map.get_key(pair[0]), 0])
-                    current_frame = int(songdata_tmp[0][1] / FRAME_RATE * self.songspeed)
+                    current_frame = int(songdata_tmp[0][1] / self.FRAME_RATE * self.songspeed)
                 else:
-                    frame = int(pair[1] / FRAME_RATE)
+                    frame = int(pair[1] / self.FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
                     if (frame == current_frame):
                         key = best_key_map.get_key(pair[0])
@@ -471,7 +510,7 @@ class Application():
                             self.songdata[idx][0] += key
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * FRAME_RATE * self.songspeed)
+                        self.songdata[idx][1] = float((frame - current_frame) * self.FRAME_RATE * self.songspeed)
                         # Add the next note to play x frames from now
                         key = best_key_map.get_key(pair[0])
                         if (key != None):
@@ -491,10 +530,11 @@ class Application():
             # On the current note we are on, wait until the appropriate time, then play the next note (based on our frame rate)
             # I'm a little lazy to do the time delta stuff, leave that to version 2.0 or something lmao
             if self.songdata_idx < len(self.songdata):
-                self.songdata[self.songdata_idx][1] -= FRAME_RATE
+                self.songdata[self.songdata_idx][1] -= self.FRAME_RATE
                 if self.songdata[self.songdata_idx][1] <= 0:
                     self.songdata_idx += 1
-                    self.play_notes(self.songdata[self.songdata_idx][0])
+                    if self.songdata_idx < len(self.songdata):
+                        self.play_notes(self.songdata[self.songdata_idx][0])
 
         # If there are still more notes to animate
         if len(self.notes_in_animation) > 0 or self.songdata_idx < len(self.songdata):
@@ -502,12 +542,12 @@ class Application():
                 self.animate_notes()
 
             # Update time?
-            self.root.after(int(FRAME_RATE), self.play_song_tick)
+            self.root.after(int(self.FRAME_RATE), self.play_song_tick)
         else:
             # Add a post song delay if we're recording keyboard presses on another thread
             if self.post_song_delay > 0:
                 self.post_song_delay -= 1
-                self.root.after(int(FRAME_RATE), self.play_song_tick)
+                self.root.after(int(self.FRAME_RATE), self.play_song_tick)
             else:
                 self.enable_inputs()
                 self.sv_descriptlabel.set(HELP_STRING)
@@ -517,28 +557,33 @@ class Application():
         for c in note_string:
             self.play_char_note(c)
     
-    def play_char_note(self, c):
-        print("WARNING: play_char_note IS NOT IMPLEMENTED")
-    
     def animate_notes(self):
         i = 0
         while i < len(self.notes_in_animation): 
             # Animation is over
-            if (self.notes_in_animation[i][0] > ITERATIONS_UNTIL_ANIM_OVER):
-                self.canvas.delete(self.notes_in_animation[i][1])
-                self.delete_note(self.notes_in_animation.pop(i))
+            if (self.notes_in_animation[i][0] > self.ITERATIONS_UNTIL_ANIM_OVER):
+                if self.notes_in_animation[i][1] is not None:
+                    # Dirty support for kb_canvas
+                    if self.kb_canvas is not None and self.notes_in_animation[i][2] == 1:
+                        self.kb_canvas.delete(self.notes_in_animation[i][1])
+                    else:
+                        self.canvas.delete(self.notes_in_animation[i][1])
+                self.on_delete_note(self.notes_in_animation.pop(i))
             else:
                 self.animate_object(i, self.notes_in_animation[i])
                 # Step to next object to animate
                 i += 1
 
-    def delete_note(self, note):
+    def on_delete_note(self, note):
         # Optional to override
         pass
 
     def song_ended(self):
         # Optional to override
         pass
+
+    def play_char_note(self, c):
+        print("WARNING: play_char_note IS NOT IMPLEMENTED")
 
     def animate_object(self, i, note_in_animation):
         print("WARNING: animate_object IS NOT IMPLEMENTED")

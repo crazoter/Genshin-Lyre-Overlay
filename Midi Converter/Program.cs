@@ -19,9 +19,16 @@ namespace Genshin_Lyre_Overlay
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            var currDir = System.AppDomain.CurrentDomain.BaseDirectory;
-            ConvertMidiToText(currDir + "file.mid", currDir + "output.txtmidi");
+            // Run using `dotnet run`
+            if (args.Length > 0) {
+                Console.WriteLine("Converting "+ args[0] +" to "+args[0]+".txt!");
+                var currDir = System.AppDomain.CurrentDomain.BaseDirectory;
+                ConvertMidiToText(currDir + args[0], currDir + args[0] + ".txt");
+            } else {
+                Console.WriteLine("Converting file.mid to output.midi.txt!");
+                var currDir = System.AppDomain.CurrentDomain.BaseDirectory;
+                ConvertMidiToText(currDir + "file.mid", currDir + "output.midi.txt");
+            }
         }
     }
 }

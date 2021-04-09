@@ -2,14 +2,18 @@
 # Requirements: Python3, Tkinter, PIL, pynput
 # install PIL using pip3 install pillow
 # install pynput using pip3 install pynput
+import queue
 import random
 from multiprocessing import Process, Lock
+from pynput import keyboard
 import time
 import json
 
 from application import *
+from typing import List
 from tkinter import *
 from tkinter import messagebox
+from PIL import ImageTk, Image
 
 # Helper functions
 def radius_to_bounding_box(x, y, r):
@@ -32,9 +36,9 @@ class OverlayApplication(Application):
         self.bbox_expansion_rate_per_frame = 0
         # Also another precomputed value
         self.charmap = {}
-        
         self.keys_and_timings_to_track = {}
         self.keys_and_timings_mutex = Lock()
+
         self.score = 0
         self.scoreables = 0
         self.false_notes = 0
@@ -182,7 +186,7 @@ class OverlayApplication(Application):
             self.notes_in_animation.append(note_in_animation)
     
     # Overriden method
-    def on_delete_note(self, note):
+    def delete_note(self, note):
         iterations, obj, c = note
         self.keys_and_timings_mutex.acquire()
         if c in self.keys_and_timings_to_track:

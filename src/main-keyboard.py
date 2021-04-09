@@ -8,8 +8,6 @@ from typing import List
 from tkinter import *
 from PIL import ImageTk, Image
 
-DROP_RATE = 350 / ITERATIONS_UNTIL_ANIM_OVER                  # oops magic numbers; this is based on hardcoded height
-
 # I assume most are right handed and play 4 fingers on right side
 LEFT_HAND_KEY_LIST = {
     'Q','W','E',
@@ -20,6 +18,10 @@ LEFT_HAND_KEY_LIST = {
 class KeyboardApplication(Application):
     def __init__(self):
         super().__init__()
+
+        self.SECONDS_TO_START_ANIMATION = 10        # Number of seconds before we begin animating the circle
+        self.ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.SECONDS_TO_START_ANIMATION
+        self.DROP_RATE = 350 / self.ITERATIONS_UNTIL_ANIM_OVER                  # oops magic numbers; this is based on hardcoded height
 
         self.songspeed = 1
         self.drop_rate = 0
@@ -52,7 +54,7 @@ class KeyboardApplication(Application):
         self.canvas.create_text(10, 415,fill='black', font="Times 16 bold", text='3')
 
         # Draw buttons and grid
-        for i in range(BUTTON_COLS * BUTTON_ROWS):
+        for i in range(self.BUTTON_COLS * self.BUTTON_ROWS):
             offset = 40 + i * 40
             key = KEY_LIST[i].upper()
             colour = "#f00"
@@ -95,13 +97,13 @@ class KeyboardApplication(Application):
             x1, y1, x2, y2 = coords
             # Update using expansion rate
             self.canvas.coords(obj, 
-                x1, y1 + DROP_RATE, 
-                x2, y2 + DROP_RATE)
+                x1, y1 + self.DROP_RATE, 
+                x2, y2 + self.DROP_RATE)
         else:
             # Text only have 2 coordinates
             x, y = coords
             # Update using expansion rate
-            self.canvas.coords(obj, x, y + DROP_RATE)
+            self.canvas.coords(obj, x, y + self.DROP_RATE)
         self.notes_in_animation[i] = (iterations + 1, obj)
 
 if __name__ == "__main__":
