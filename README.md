@@ -1,5 +1,10 @@
 # Genshin Lyre Overlay AKA Venti Sensei
-A suite of programs built in Python to improve your lyre playing experience.
+[![IMAGE ALT OF YOUTUBE VIDEO](https://img.youtube.com/vi/Yi2aP_-9nVg/0.jpg)](https://www.youtube.com/watch?v=Yi2aP_-9nVg)
+* **Features:**
+* Play songs much more easily with properly labelled buttons and visual cues to tell you when to press the buttons
+* Compete with your friends or yourself by playing your songs and getting a score
+* Convert your in-game performances, or even videos of other players into keystrokes using `key-recorder`.
+* Comes with exes to work out of the box for non-programmers.
 
 ## Getting Started
 * I may put the exes in zipped format under releases when it's more stable. But for now:
@@ -8,14 +13,14 @@ A suite of programs built in Python to improve your lyre playing experience.
 3. If it fails to run, open cmd in that directory, and run it via cmd with `./main.exe` or whatever.
     1. You'll get an error message or something; send it to me via Issues or PM.
 
-Comes with exes to work out of the box for non-programmers.
 ## Core scripts / executables
 
 ### Main.py / Main.exe
 * The main application that combines overlay, keyboard & game functionality.
 
 ### Key-recorder.py / key-recorder.exe
-* Overlay the application on anything (game / video) and press the start button, followed by stop button when the music is over. The application will turns them into handy keypress sheet music, and format 1 txt file for the application.
+* Overlay the application on anything (game / video) and press the start button, followed by stop button when the music is over. 
+* The application will turns them into keypress sheet music, and format 1 txt file for the application.
 * Quick demo: https://www.youtube.com/watch?v=oackcHgui3o
 * The left textbox will contain format 1 txt file's contents, the right textbox is for sharing the keypress notation.
 
