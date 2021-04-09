@@ -1,18 +1,25 @@
 # Genshin Lyre Overlay AKA Venti Sensei
 A suite of programs built in Python to improve your lyre playing experience.
 
+## Getting Started
+* I may put the exes in zipped format under releases when it's more stable.
+* Download the repository
+* Run the exe in the `dist` directory
+* If it fails to run, open cmd in that directory, and run it via cmd with `./main.exe` or whatever.
+  * You'll get an error message or something; send it to me via Issues or PM.
+
 Comes with exes to work out of the box for non-programmers.
 ## Core scripts / executables
 
-## Main.py / Main.exe
+### Main.py / Main.exe
 * The main application that combines overlay, keyboard & game functionality.
 
-## Key-recorder.py / key-recorder.exe
+### Key-recorder.py / key-recorder.exe
 * Overlay the application on anything (game / video) and press the start button, followed by stop button when the music is over. The application will turns them into handy keypress sheet music, and format 1 txt file for the application.
 * Quick demo: https://www.youtube.com/watch?v=oackcHgui3o
 * The left textbox will contain format 1 txt file's contents, the right textbox is for sharing the keypress notation.
 
-## Midi Converter (C#)
+### Midi Converter (C#)
 * A C# program (you will most likely need .NET Framework to run the exe in the bin directory) that allows you to convert your midi files into `.midi.txt` format which can be used by the application.
 
 ### Main-overlay.py / Main-overlay.exe
