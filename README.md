@@ -2,11 +2,11 @@
 A suite of programs built in Python to improve your lyre playing experience.
 
 ## Getting Started
-* I may put the exes in zipped format under releases when it's more stable.
-* Download the repository
-* Run the exe in the `dist` directory
-* If it fails to run, open cmd in that directory, and run it via cmd with `./main.exe` or whatever.
-  * You'll get an error message or something; send it to me via Issues or PM.
+* I may put the exes in zipped format under releases when it's more stable. But for now:
+1. Download the repository
+2. Run the exe of your choice in the `dist` directory (right now `main.exe` and `key-recorder.exe` are the most useful; read more below)
+3. If it fails to run, open cmd in that directory, and run it via cmd with `./main.exe` or whatever.
+    1. You'll get an error message or something; send it to me via Issues or PM.
 
 Comes with exes to work out of the box for non-programmers.
 ## Core scripts / executables
