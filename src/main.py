@@ -8,8 +8,7 @@ from multiprocessing import Process, Lock
 import mss
 import threading
 
-import importlib
-main_overlay = importlib.import_module("main-overlay")
+import main_overlay
 
 from tkinter import *
 from tkinter import scrolledtext, messagebox

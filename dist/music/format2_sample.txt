@@ -1,6 +1,6 @@
 Zenitsu Theme - Demon Slayer OST - EASY Piano Arrangement (Synthesia) by TAM
 Format: 2
-//4th
+//I don't think this is very playable, but you can see the syntax via this file
 //WE = D5 #
 //W = D5
 //Q = C5
