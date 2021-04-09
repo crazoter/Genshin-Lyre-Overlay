@@ -1,3 +1,4 @@
-radius: 40
+filename: music/sample.txt
+radius: 29
 x_spacing: 60
 y_spacing: 44

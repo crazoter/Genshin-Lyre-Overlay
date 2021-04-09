@@ -95,19 +95,18 @@ class OverlayApplication(Application):
 
         self.redraw_outlines()
 
-        # Setup the listener stop function by setting it to stop on window exit
-
-        # Since we're using a 2nd thread for keypress detection, we'll need to handle the GUI closing fx
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-    def on_closing(self):
-        with open("config.txt", "w") as f:
-            f.write('radius: {0}\nx_spacing: {1}\ny_spacing: {2}'.format(
+    def on_closing(self, call_root_destroy):
+        super().on_closing(False)
+        print("overlay closing")
+        with open("config.txt", "a") as f:
+            f.write('radius: {0}\nx_spacing: {1}\ny_spacing: {2}\n'.format(
                 self.sv_radius.get(),
                 self.sv_x_spacing.get(),
                 self.sv_y_spacing.get()
             ))
-        self.root.destroy()
+
+        if call_root_destroy:
+            self.root.destroy()
 
     def reformat_outlines_callback(self, sv):
         if (sv.get().isdigit()):

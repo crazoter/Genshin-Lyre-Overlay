@@ -137,6 +137,18 @@ class Application():
 
         self.root = Tk() 
         self.sv_filename = StringVar(self.root, value="music/sample.txt")
+
+        # Opening the same config file multiple times in multiple inits is not optimal, but sufficient since it's a small file
+        try:
+            with open("config.txt", "r") as f:
+                for line in f:
+                    if "filename" in line:
+                        self.sv_filename.set(line.strip().split()[1])
+        except IOError: 
+            print("config.txt file couldn't be opened (you may want to have one in the same directory)")
+        except IndexError:
+            print("config.txt file is incorrectly formatted")
+
         self.sv_descriptlabel = StringVar(self.root, value=HELP_STRING)
         self.canvas = None
 
@@ -169,7 +181,18 @@ class Application():
         self.center.grid_rowconfigure(0, weight=1)
         self.center.grid_columnconfigure(1, weight=1)
     
+    def on_closing(self, call_root_destroy):
+        print("app closing")
+        with open("config.txt", "w") as f:
+            f.write('filename: {0}\n'.format(
+                self.sv_filename.get()
+            ))
+        if call_root_destroy:
+            self.root.destroy()
+
+    
     def start(self):
+        self.root.protocol("WM_DELETE_WINDOW", lambda arg=True: self.on_closing(arg))
         self.root.mainloop()
 
     def disable_inputs(self):
