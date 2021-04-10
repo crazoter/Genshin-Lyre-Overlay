@@ -118,7 +118,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         c2.grid(row=2, column=2, columnspan=2)
         self.inputObjects.append(c2)
 
-        self.iv_showkeyboard = IntVar(value=0)
+        self.iv_showkeyboard = IntVar(value=1)
         c3 = Checkbutton(self.top_frame, text='Animate Keyboard',variable=self.iv_showkeyboard, onvalue=1, offvalue=0,fg='red')
         c3.grid(row=2, column=4, columnspan=2)
         self.inputObjects.append(c3)
@@ -137,6 +137,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.run_mssthread = False
         print(self.get_monitor())
 
+        # GAME
+        self.START_CHECKI = 20 # ~666ms
+
         # Keyboard UI
         self.KB_SECONDS_TO_START_ANIMATION = 10        # Number of seconds before we begin animating the circle
         self.KB_ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.KB_SECONDS_TO_START_ANIMATION
@@ -146,7 +149,11 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.KB_HEIGHT = 300
         self.KB_DROP_RATE = self.KB_BAR_HEIGHT / self.KB_ITERATIONS_UNTIL_ANIM_OVER
         # this is a pretty funny hack
+        # basically every tick will increment the iteration value from 0 to ITER_UNTIL_ANIM_OVER, then remove it when it reaches
+        # This sets the value to negative so that it will animate properly (the base ITER_UNTIL_ANIM_OVER is for circles)
         self.KB_ANIM_START_VAL = self.ITERATIONS_UNTIL_ANIM_OVER - self.KB_ITERATIONS_UNTIL_ANIM_OVER
+        # This is for the notes at the side
+        self.kb_sidenote_offset = (self.songdata_idx, 0)
         # Draw keyboard
         # create & layout the canvas
         self.kb_canvas = Canvas(self.center, bg='black', height=self.KB_HEIGHT, width=900)
@@ -170,6 +177,14 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                 height_offset = self.KB_BAR_HEIGHT + 50
             self.kb_canvas.create_rectangle(offset, self.KB_BAR_HEIGHT, offset + 20, self.KB_BAR_HEIGHT + self.KB_NOTE_HEIGHT, outline="gray", fill="gray")
             self.kb_canvas.create_text(offset + 12, height_offset, fill=colour, font="Times 11 bold", text=key)
+        
+        self.kb_sidenote_printedto_idx = 0
+        self.KB_CHANGING_NOTE_LENGTH = 255
+        self.KB_CHANGINGNOTE_QUANT = 1
+        self.kb_changingnote_obj = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70, fill="yellow", anchor=W)
+        self.kb_changingnote_txt = ""
+        self.kb_changingnote_idx = 0
+        self.kb_changingnote_tick = 0
 
     def reformat_outlines_callback(self, sv):
         if (sv.get().isdigit()):
@@ -184,6 +199,10 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.set_charmap()
         self.redraw_outlines(self.iv_animatecircles.get() == 1)
         self.songdata_idx = 0
+        self.kb_sidenote_printedto_idx = 0
+        self.kb_changingnote_txt = "." * (int(self.ITERATIONS_UNTIL_ANIM_OVER - self.KB_ANIM_START_VAL) // self.KB_CHANGINGNOTE_QUANT)
+        print(self.ITERATIONS_UNTIL_ANIM_OVER - self.KB_ANIM_START_VAL)
+        self.kb_changingnote_idx = 0
         if self.iv_isgame.get() == 1:
             self.score = 0
             self.false_notes = 0
@@ -194,6 +213,75 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             main_loop_thread = threading.Thread(target=mssthread, args=(self, ))
             main_loop_thread.daemon = True
             main_loop_thread.start()
+    
+    def post_data_parse(self):
+        for row in self.songdata:
+            self.kb_changingnote_txt += "(" + row[0] + ")"
+            # naive but simple solution
+            counts = 0
+            time_count = row[1]
+            while time_count > 0:
+                time_count -= self.FRAME_RATE
+                counts += 1
+        
+            self.kb_changingnote_txt += '.' * max(0, (counts - 1) // self.KB_CHANGINGNOTE_QUANT)
+
+        self.kb_canvas.itemconfig(self.kb_changingnote_obj, text=self.kb_changingnote_txt[0:self.KB_CHANGING_NOTE_LENGTH])
+
+
+    # Overriden method
+    def play_notes(self, note_string):
+        # Add notes to the animation list
+        for c in note_string:
+            self.play_char_note(c)
+        # Conditionally play sidenote; merge lines according to how much space we have
+        # record the songidx that we merged until, so that we can compare later on and repeat
+        """
+        if self.iv_showkeyboard.get() == 1:
+            if self.songdata_idx == self.kb_sidenote_printedto_idx:
+                print(self.songdata_idx, self.kb_sidenote_printedto_idx)
+                txt = "({0})".format(note_string)
+                ms_until_next = 1000
+                while self.kb_sidenote_printedto_idx < len(self.songdata) - 1:
+                    diff = ms_until_next - max(0, self.songdata[self.kb_sidenote_printedto_idx][1])
+                    # exceeded limit
+                    if diff < 0:
+                        break
+                    else:
+                        self.kb_sidenote_printedto_idx += 1
+                        ms_until_next -= diff
+                    txt += "{0}({1})".format('-'*int(diff/200), self.songdata[self.kb_sidenote_printedto_idx][0])
+                self.kb_sidenote_printedto_idx += 1
+                    
+                self.notes_in_animation.append(
+                    # Magic hardcoded value
+                    # - an extra 30 to make sure it still persists while the remaining  notes are playing
+                    (self.KB_ANIM_START_VAL - 30, self.kb_canvas.create_text(22 * 40, 6, fill='yellow', font="Times 8 bold", text=txt, anchor=W), 1, txt)
+                )
+        """
+
+    # Override
+    def animate_notes(self):
+        super().animate_notes()
+
+        if self.kb_changingnote_tick < self.KB_CHANGINGNOTE_QUANT - 1:
+            self.kb_changingnote_tick += 1
+        else:
+            self.kb_changingnote_tick = 0
+            # Animate "scrolling" text
+            if self.kb_changingnote_idx < len(self.kb_changingnote_txt):
+                if self.kb_changingnote_txt[self.kb_changingnote_idx] == '.':
+                    self.kb_changingnote_idx += 1
+                else:
+                    # Only skip the contents of 1 bracket at a time
+                    while (self.kb_changingnote_idx < len(self.kb_changingnote_txt) 
+                        and self.kb_changingnote_txt[self.kb_changingnote_idx] != ')'):
+                        self.kb_changingnote_idx += 1
+                    # Skip the closing bracket too
+                    self.kb_changingnote_idx += 1
+
+                self.kb_canvas.itemconfig(self.kb_changingnote_obj, 
+                    text=self.kb_changingnote_txt[self.kb_changingnote_idx: self.kb_changingnote_idx + self.KB_CHANGING_NOTE_LENGTH])
 
     # Overriden method
     def play_char_note(self, c):
@@ -258,7 +346,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
             # There will always be one non keyboard note even if circles are not animated
             if self.iv_isgame.get() == 1:
-                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == 10): # magic number here; 10 frame leeway; ~333ms
+                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_CHECKI):
                     self.keys_and_timings_mutex.acquire()
                     if c in self.keys_and_timings_to_track:
                         self.keys_and_timings_to_track[c] += 1
@@ -300,7 +388,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             stars = "★☆☆"
             chars = ['Klee', 'Razor', 'Bennett', 'Mona']
             venti_verdict = (
-                "Umm... You... Don't really have a sense of rhythm do you? Don't give up! "
+                "Not bad... but you can do better. Don't give up! "
                 "Maybe I can ask {0} to coach you...\n\nRank: Musical Hobbyist"
             ).format(chars[random.randint(0,3)])
         elif final_score < 0.66:

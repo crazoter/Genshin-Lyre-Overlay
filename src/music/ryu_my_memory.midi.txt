@@ -1,5 +1,5 @@
-Name: Ryu My Memory (Midi by Tran Dang Khoa)
-Speed: 0.8
+Name: Ryu My Memory (Arranged by Tran Dang Khoa)
+Speed: 0.5
 67 1200
 76 1440
 71 1680

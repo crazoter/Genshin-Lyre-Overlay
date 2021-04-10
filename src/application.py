@@ -121,6 +121,7 @@ class NoteKeyMap:
             self.map[root_note + key_step[0]] = key_step[1].upper()
 
     def get_key(self, note):
+        note = int(note)
         if note in self.map:
             return self.map.get(note)
         else:
@@ -245,12 +246,15 @@ class Application():
         # here I assume the user inputs the correct filename
         if self.sv_filename.get().lower().endswith('.midi.txt'):
             self.read_music_txtmidi()
+            self.post_data_parse()
             self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
         elif self.sv_filename.get().lower().endswith('.txt'):
             self.read_music_txt()
+            self.post_data_parse()
             self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
         elif self.sv_filename.get().lower().endswith('.json'):
             self.read_music_sky_json()
+            self.post_data_parse()
             self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
         #elif self.sv_filename.get().lower().endswith('.midi'):
         #    print("not yet supported")
@@ -261,6 +265,10 @@ class Application():
     
     def post_play_press_pre_data_parse(self):
         print("WARNING: post_play_press_pre_data_parse IS NOT IMPLEMENTED")
+    
+    def post_data_parse(self):
+        # Optional override
+        pass
 
     def read_music_txt(self):
         # Read in file
@@ -446,6 +454,7 @@ class Application():
         print("Reading TXTMIDI")
         with open(self.sv_filename.get()) as file:
             songdata_tmp = file.readlines() 
+            # print(songdata_tmp)
             # I don't really know how accurate the auto root system is, so I'll just fix it at the proper value
             best_key_map = NoteKeyMap(48)
             """
@@ -489,18 +498,22 @@ class Application():
             current_frame = -1
             # 0: key, 1: time
             for pair in songdata_tmp:
+                # print(pair)
                 if "NAME" in pair.upper():
                     self.songname = pair
-                    songdata_tmp.pop(0)
+                    # songdata_tmp.pop(0) # it is automatically skipped
                     continue
                 if "SPEED" in pair.upper():
-                    self.songspeed = float(pair.split()[1])
-                    songdata_tmp.pop(0)
+                    print("speed checked")
+                    self.songspeed = 1/float(pair.split()[1])
+                    # songdata_tmp.pop(0) # it is automatically skipped
                     continue
                 # First note, just add without binning yet
+                pair = pair.split()
+                pair = [int(pair[0]), int(pair[1])]
                 if current_frame == -1:
                     self.songdata.append([best_key_map.get_key(pair[0]), 0])
-                    current_frame = int(songdata_tmp[0][1] / self.FRAME_RATE * self.songspeed)
+                    current_frame = int(pair[1] / self.FRAME_RATE * self.songspeed)
                 else:
                     frame = int(pair[1] / self.FRAME_RATE)
                     # Same frame, append the note to the previous group because they will visually appear at the same time

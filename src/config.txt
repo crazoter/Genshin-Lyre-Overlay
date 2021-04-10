@@ -1,4 +1,4 @@
-filename: music/format1_sample.txt
-radius: 38
-x_spacing: 81
-y_spacing: 58
+filename: music/ryu_my_memory.midi.txt
+radius: 36
+x_spacing: 75
+y_spacing: 55
