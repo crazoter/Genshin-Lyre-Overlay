@@ -57,8 +57,9 @@ def mssthread(app):
                     # Key was pressed
                     if not key_state[i[4]]:
                         key_val = i[4]
-                        print("ACQ", time.time())
+                        print("msst ACQ", time.time())
                         app.keys_and_timings_mutex.acquire()
+                        print("msst", key_val, app.keys_and_timings_to_track, app.false_notes)
                         if key_val in app.keys_and_timings_to_track:
                             app.keys_and_timings_to_track[key_val] -= 1
                             if app.keys_and_timings_to_track[key_val] == 0:
@@ -66,9 +67,11 @@ def mssthread(app):
                             app.score += 1
                         else:
                             app.false_notes += 1
-                        app.update_score()
+                        print("msst uscore", time.time())
+                        # app.update_score()
+                        print("msst EXIT", time.time())
                         app.keys_and_timings_mutex.release()
-                        print("REL", time.time())
+                        print("msst REL", time.time())
                     key_state[i[4]] = True
 
                 else:
@@ -102,6 +105,7 @@ def append_txt(text, value):
 class KeyRecordApplication(main_overlay.OverlayApplication):
     def __init__(self):
         super().__init__()
+        print("Starting the application (this could take some time)")
 
         self.keys_and_timings_to_track = {}
         self.keys_and_timings_mutex = Lock()
@@ -126,15 +130,16 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         c3.grid(row=2, column=4, columnspan=2)
         self.inputObjects.append(c3)
         
-        self.sv_scorelabel = StringVar(self.root, value="Score: ")
-        label_score = Label(self.top_frame, text='', textvariable=self.sv_scorelabel)
-        label_score.grid(row=2, column=6, columnspan=8)
+        # self.sv_scorelabel = StringVar(self.root, value="Score: ")
+        self.label_score = Label(self.top_frame, text='')
+        self.label_score.grid(row=2, column=6, columnspan=8)
 
         # Redraw outlines without labels
         self.redraw_outlines(self.iv_animatecircles.get() == 1)
         # run event loop until window appears
         self.root.wait_visibility()
         # Perform this action, as sct will cause modifications to the size of the screen on start-up
+        print("Preparing MSS")
         with mss.mss() as sct:
             pass
         self.run_mssthread = False
@@ -274,7 +279,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                 )
         """
 
-    # Override
+    # Override; this is called per tick
     def animate_notes(self):
         super().animate_notes()
 
@@ -297,6 +302,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
                 self.kb_canvas.itemconfig(self.kb_changingnote_obj, 
                     text=self.kb_changingnote_txt[self.kb_changingnote_idx: self.kb_changingnote_idx + self.KB_CHANGING_NOTE_LENGTH])
+        
+        if self.iv_isgame.get() == 1:
+            self.update_score()
 
     # Overriden method
     def play_char_note(self, c):
@@ -334,14 +342,17 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             return
 
         iterations, obj, is_keyboard_note, c = note
+        print("ODN ACQ")
         self.keys_and_timings_mutex.acquire()
         if c in self.keys_and_timings_to_track:
             if self.keys_and_timings_to_track[c] <= 0:
                 del self.keys_and_timings_to_track[c]
             else:
                 self.keys_and_timings_to_track[c] -= 1
-        self.update_score()
+        # Python will hang if I update the label in critical section
+        # self.update_score()
         self.keys_and_timings_mutex.release()
+        print("ODN REL")
 
     # Overriden method
     def animate_object(self, i, note_in_animation):
@@ -362,6 +373,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # There will always be one non keyboard note even if circles are not animated
             if self.iv_isgame.get() == 1:
                 if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_CHECKI):
+                    print("ANIM ACQ")
                     self.keys_and_timings_mutex.acquire()
                     if c in self.keys_and_timings_to_track:
                         self.keys_and_timings_to_track[c] += 1
@@ -369,6 +381,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                         self.keys_and_timings_to_track[c] = 1
                     self.scoreables += 1
                     self.keys_and_timings_mutex.release()
+                    print("ANIM REL")
         
         if type_of_display == 1 and self.iv_showkeyboard.get() == 1:
                 # Get coords
@@ -417,7 +430,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             stars = "★★★"
             chars = ['me', 'Albedo', 'Diluc', 'Barbara']
             venti_verdict = (
-                "Wow, that must've taken a lot of practice... Or are you just talented?"
+                "Wow, that must've taken a lot of practice... Or are you just talented? "
                 "Would you mind playing a duet with {0} sometime? Haha..."
                 "\n\nRank: Windblume Laureate"
             ).format(chars[random.randint(0,3)])
@@ -436,7 +449,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         )
 
     def update_score(self):
-        self.sv_scorelabel.set("Score: {0}/{1} notes hit - 1/2 * {2} wrong notes played = {3}".format(self.score, self.scoreables, self.false_notes, self.score - 0.5 * (self.false_notes)))
+        self.label_score['text'] = "Score: {0}/{1} notes hit - 1/2 * {2} wrong notes played = {3}".format(self.score, self.scoreables, self.false_notes, self.score - 0.5 * (self.false_notes))
+        # self.sv_scorelabel.set("Score: {0}/{1} notes hit - 1/2 * {2} wrong notes played = {3}".format(self.score, self.scoreables, self.false_notes, self.score - 0.5 * (self.false_notes)))
+        pass
 
 
     def on_closing(self, call_root_destroy):
