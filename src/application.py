@@ -147,7 +147,7 @@ class Application():
         self.FPS = 30.0
         self.SECONDS_TO_START_ANIMATION = 4        # Number of seconds before we begin animating the circle
         self.ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.SECONDS_TO_START_ANIMATION
-        self.FRAME_RATE = 1000/ self.FPS           # This will also affect the accuracy of your songs
+        self.MS_PER_FRAME = 1000/ self.FPS           # This will also affect the accuracy of your songs
         self.DELAY_AFTER_PLAY_PRESSED = 2000
 
         # Application variables
@@ -433,15 +433,15 @@ class Application():
                 # First note, just add without binning yet
                 if current_frame == -1:
                     self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
-                    current_frame = int(data['songNotes'][0]['time'] / self.FRAME_RATE * self.songspeed)
+                    current_frame = int(data['songNotes'][0]['time'] / self.MS_PER_FRAME * self.songspeed)
                 else:
-                    frame = int(pair['time'] / self.FRAME_RATE)
+                    frame = int(pair['time'] / self.MS_PER_FRAME)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
                     if (frame == current_frame):
                         self.songdata[idx][0] += SKY_JSON_NOTE_MAP[pair['key']]
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * self.FRAME_RATE * self.songspeed)
+                        self.songdata[idx][1] = float((frame - current_frame) * self.MS_PER_FRAME * self.songspeed)
                         # Add the next note to play x frames from now
                         self.songdata.append([SKY_JSON_NOTE_MAP[pair['key']], 0])
                         current_frame = frame
@@ -513,9 +513,9 @@ class Application():
                 pair = [int(pair[0]), int(pair[1])]
                 if current_frame == -1:
                     self.songdata.append([best_key_map.get_key(pair[0]), 0])
-                    current_frame = int(pair[1] / self.FRAME_RATE * self.songspeed)
+                    current_frame = int(pair[1] / self.MS_PER_FRAME * self.songspeed)
                 else:
-                    frame = int(pair[1] / self.FRAME_RATE)
+                    frame = int(pair[1] / self.MS_PER_FRAME)
                     # Same frame, append the note to the previous group because they will visually appear at the same time
                     if (frame == current_frame):
                         key = best_key_map.get_key(pair[0])
@@ -523,7 +523,7 @@ class Application():
                             self.songdata[idx][0] += key
                     else:
                         # Play this note x frames from the current_frame
-                        self.songdata[idx][1] = float((frame - current_frame) * self.FRAME_RATE * self.songspeed)
+                        self.songdata[idx][1] = float((frame - current_frame) * self.MS_PER_FRAME * self.songspeed)
                         # Add the next note to play x frames from now
                         key = best_key_map.get_key(pair[0])
                         if (key != None):
@@ -535,6 +535,7 @@ class Application():
                 print(i)
 
     def play_song_tick(self):
+        tick_start_t = time.time()
         # We've not played the first note, so start playing it
         if self.songdata_idx == -1:
             self.songdata_idx = 0
@@ -543,27 +544,33 @@ class Application():
             # On the current note we are on, wait until the appropriate time, then play the next note (based on our frame rate)
             # I'm a little lazy to do the time delta stuff, leave that to version 2.0 or something lmao
             if self.songdata_idx < len(self.songdata):
-                self.songdata[self.songdata_idx][1] -= self.FRAME_RATE
+                self.songdata[self.songdata_idx][1] -= self.MS_PER_FRAME
                 if self.songdata[self.songdata_idx][1] <= 0:
                     self.songdata_idx += 1
                     if self.songdata_idx < len(self.songdata):
                         self.play_notes(self.songdata[self.songdata_idx][0])
 
         # If there are still more notes to animate
-        if len(self.notes_in_animation) > 0 or self.songdata_idx < len(self.songdata):
+        continue_loop = len(self.notes_in_animation) > 0 or self.songdata_idx < len(self.songdata)
+        if continue_loop:
             if len(self.notes_in_animation) > 0:
                 self.animate_notes()
-
-            # Update time?
-            self.root.after(int(self.FRAME_RATE), self.play_song_tick)
         else:
             # Add a post song delay if we're recording keyboard presses on another thread
-            if self.post_song_delay > 0:
+            continue_loop = self.post_song_delay > 0
+            if continue_loop:
                 self.post_song_delay -= 1
-                self.root.after(int(self.FRAME_RATE), self.play_song_tick)
             else:
                 self.enable_inputs()
                 self.sv_descriptlabel.set(HELP_STRING)
+        
+        if continue_loop:
+            time_spent_in_tick = (time.time() - tick_start_t) * 1000
+            next_tick = max(0, self.MS_PER_FRAME - time_spent_in_tick)
+            if next_tick == 0:
+                self.play_song_tick()
+            else:
+                self.root.after(int(next_tick), self.play_song_tick)
 
     def play_notes(self, note_string):
         # Add notes to the animation list

@@ -137,7 +137,7 @@ class OverlayApplication(Application):
 
     def set_bbox_expansion_rate_per_frame(self):
         bounding_box_width = int(self.sv_radius.get())
-        self.bbox_expansion_rate_per_frame = bounding_box_width / 1000.0 * self.FRAME_RATE / (self.SECONDS_TO_START_ANIMATION * 1.0)
+        self.bbox_expansion_rate_per_frame = bounding_box_width / 1000.0 * self.MS_PER_FRAME / (self.SECONDS_TO_START_ANIMATION * 1.0)
 
     def set_charmap(self):
         r = int(self.sv_radius.get())

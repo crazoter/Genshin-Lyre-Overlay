@@ -45,6 +45,7 @@ def mssthread(app):
 
             # For now we'll not be using S,V
             img = np.delete(img, [1,2], 1)
+            # print(time.time())
             for i in app.key_positions:
                 crop = img[i[2] : i[3], i[0] : i[1]]
                 # Detect by thresholding to detect that greenish tint
@@ -56,6 +57,7 @@ def mssthread(app):
                     # Key was pressed
                     if not key_state[i[4]]:
                         key_val = i[4]
+                        print("ACQ", time.time())
                         app.keys_and_timings_mutex.acquire()
                         if key_val in app.keys_and_timings_to_track:
                             app.keys_and_timings_to_track[key_val] -= 1
@@ -66,6 +68,7 @@ def mssthread(app):
                             app.false_notes += 1
                         app.update_score()
                         app.keys_and_timings_mutex.release()
+                        print("REL", time.time())
                     key_state[i[4]] = True
 
                 else:
@@ -108,18 +111,18 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
         # https://stackoverflow.com/questions/12364981/how-to-delete-tkinter-widgets-from-a-window
 
-        self.iv_isgame = IntVar(value=0)
+        self.iv_isgame = IntVar(value=1)
         c1 = Checkbutton(self.top_frame, text='Enable Game',variable=self.iv_isgame, onvalue=1, offvalue=0,fg='red')
         c1.grid(row=2, column=0, columnspan=2)
         self.inputObjects.append(c1)
 
-        self.iv_animatecircles = IntVar(value=1)
-        c2 = Checkbutton(self.top_frame, text='Animate Circles',variable=self.iv_animatecircles, onvalue=1, offvalue=0,fg='red')
+        self.iv_animatecircles = IntVar(value=0)
+        c2 = Checkbutton(self.top_frame, text='Animate Circles (Laggy)',variable=self.iv_animatecircles, onvalue=1, offvalue=0,fg='red')
         c2.grid(row=2, column=2, columnspan=2)
         self.inputObjects.append(c2)
 
-        self.iv_showkeyboard = IntVar(value=1)
-        c3 = Checkbutton(self.top_frame, text='Animate Keyboard',variable=self.iv_showkeyboard, onvalue=1, offvalue=0,fg='red')
+        self.iv_showkeyboard = IntVar(value=0)
+        c3 = Checkbutton(self.top_frame, text='Animate Keyboard (Laggy)',variable=self.iv_showkeyboard, onvalue=1, offvalue=0,fg='red')
         c3.grid(row=2, column=4, columnspan=2)
         self.inputObjects.append(c3)
         
@@ -181,7 +184,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.kb_sidenote_printedto_idx = 0
         self.KB_CHANGING_NOTE_LENGTH = 255
         self.KB_CHANGINGNOTE_QUANT = 1
-        self.kb_changingnote_obj = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70, fill="yellow", anchor=W)
+        self.kb_changingnote_obj = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70, font="11", fill="yellow", anchor=W)
         self.kb_changingnote_txt = ""
         self.kb_changingnote_idx = 0
         self.kb_changingnote_tick = 0
@@ -216,17 +219,28 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
     
     def post_data_parse(self):
         for row in self.songdata:
-            self.kb_changingnote_txt += "(" + row[0] + ")"
             # naive but simple solution
             counts = 0
             time_count = row[1]
             while time_count > 0:
-                time_count -= self.FRAME_RATE
+                time_count -= self.MS_PER_FRAME
                 counts += 1
-        
-            self.kb_changingnote_txt += '.' * max(0, (counts - 1) // self.KB_CHANGINGNOTE_QUANT)
+            note_str_len = len("{" + row[0] + ")")
+            if counts > note_str_len + 1:
+                self.kb_changingnote_txt += "{" + row[0] + ")"
+                self.kb_changingnote_txt += '.' * max(0, (counts - 1 + 1 - note_str_len) // self.KB_CHANGINGNOTE_QUANT)
+            else:
+                self.kb_changingnote_txt += "(" + row[0] + ")"
+                self.kb_changingnote_txt += '.' * max(0, (counts - 1) // self.KB_CHANGINGNOTE_QUANT)
+
+        # Try to make it smoother by making it occupy some spaces behind instead
 
         self.kb_canvas.itemconfig(self.kb_changingnote_obj, text=self.kb_changingnote_txt[0:self.KB_CHANGING_NOTE_LENGTH])
+
+        # add a placeholder element if we are not showing the keyboard for event handling
+        if (self.iv_showkeyboard.get() == 0):
+            note_in_animation = [30-len(self.kb_changingnote_txt), None, 2, '']
+            self.notes_in_animation.append(note_in_animation)
 
 
     # Overriden method
@@ -269,8 +283,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         else:
             self.kb_changingnote_tick = 0
             # Animate "scrolling" text
+            # Skip bracket if necessary
             if self.kb_changingnote_idx < len(self.kb_changingnote_txt):
-                if self.kb_changingnote_txt[self.kb_changingnote_idx] == '.':
+                if self.kb_changingnote_txt[self.kb_changingnote_idx] != '(':
                     self.kb_changingnote_idx += 1
                 else:
                     # Only skip the contents of 1 bracket at a time
@@ -330,10 +345,10 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
     # Overriden method
     def animate_object(self, i, note_in_animation):
-        iterations, obj, is_keyboard_note, c = note_in_animation
+        iterations, obj, type_of_display, c = note_in_animation
 
         # Get coords; 
-        if not is_keyboard_note:
+        if type_of_display == 0:
             if self.iv_animatecircles.get() == 1 and iterations >= 0:
                 # if iterations is negative, then it's waiting for the keyboard notes
                 x1, y1, x2, y2 = self.canvas.coords(obj)
@@ -355,7 +370,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                     self.scoreables += 1
                     self.keys_and_timings_mutex.release()
         
-        if is_keyboard_note and self.iv_showkeyboard.get() == 1:
+        if type_of_display == 1 and self.iv_showkeyboard.get() == 1:
                 # Get coords
                 coords = self.kb_canvas.coords(obj)
                 if len(coords) == 4:
@@ -372,7 +387,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                     self.kb_canvas.coords(obj, x, y + self.KB_DROP_RATE)
 
 
-        self.notes_in_animation[i] = (iterations + 1, obj, is_keyboard_note, c)
+        self.notes_in_animation[i] = (iterations + 1, obj, type_of_display, c)
     
     # override
     def song_ended(self):
