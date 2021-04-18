@@ -1,5 +1,5 @@
 # Genshin Lyre Overlay AKA Venti Sensei
-[![IMAGE ALT OF YOUTUBE VIDEO](https://img.youtube.com/vi/Yi2aP_-9nVg/0.jpg)](https://www.youtube.com/watch?v=Yi2aP_-9nVg)
+[![IMAGE ALT OF YOUTUBE VIDEO](https://img.youtube.com/vi/T7JhCxq2jBE/0.jpg)](https://www.youtube.com/watch?v=T7JhCxq2jBE)
 * **Features:**
 * Play songs much more easily with properly labelled buttons and visual cues to tell you when to press the buttons
 * Compete with your friends or yourself by playing your songs and getting a score
@@ -23,17 +23,26 @@
 * The application will turns them into keypress sheet music, and format 1 txt file for the application.
 * Quick demo: https://www.youtube.com/watch?v=oackcHgui3o
 * The left textbox will contain format 1 txt file's contents, the right textbox is for sharing the keypress notation.
+* Usage:
+    * Resize and reposition window to make red circles correctly overlay the notes
+    * Keep the window as small as possible to maximize your chances of correctly recording the keys (screen capture rate is inversely proportional to window size)
+    * Press start to start recording and stop to finish recording
+    * Copy the text into a .txt file; it's now ready for use
 
 ### Midi Converter (C#)
 * A C# program (you will most likely need .NET Framework to run the exe in the bin directory) that allows you to convert your midi files into `.midi.txt` format which can be used by the application.
+* Usage is described in this [video](https://www.youtube.com/watch?v=3cbOJfseS9w).
 
+## Old versions
 ### Main-overlay.py / Main-overlay.exe
 * Contains overlay functionality only. 
 * Quick demo of the old version that doesn't have button mapping overlay: https://i.imgur.com/VnqTvVv.mp4
 
-## Old versions
 ### Main-keyboard.py / Main-keyboard.exe
 * This is an older version that shows the keyboard only.
+
+### Old demos
+* https://www.youtube.com/watch?v=Yi2aP_-9nVg
 
 ### How does it work?
 * The application creates a window that overlays all other applications, including Genshin Impact in windowed mode.
@@ -43,19 +52,23 @@
 * When satisfied, user presses play button.
 * The program will highlight the notes to play.
 * After the song has ended, the user can input another filename to play that song.
+* If in game mode, the application will record keypresses using screen capture. It will evaluate your playing and give you a score at the end.
 
 ### How does the application record your keypresses?
 * The application "records" your keypresses through repeated localized screenshots. 
 * As such, if you're experiencing poor key detection, you may want to disable circle animations as they can block the screen capture mechanism (when playing a hard song that floods the note).
+* You may also want to reduce the size of the window etc so that smaller screenshots need to be taken, increasing frame-rate.
 
 ### How to use the application
 * You can run the main.exe files in the dist directory. If you have python 3.7 on your computer, you can just run the script directly in the src directory, so long as you have the dependencies installed.
 * If the exe does not work, open command line and run the application from the command line; this will show you the error. Open an issue and paste the screenshot or dump the error text.
+* I have included a bat script which will run the main executable from the command line. To see how it's inner workings, you can edit the script by right clicking and clicking edit.
 
 ### How to add songs & the syntax
 * Include your file containing the song in the same directory as the application.
 * I have included various example songs in the music directory `music/sample.txt` for reference.
 * You can also just use the recorder application to record some songs.
+* Video example walkthrough for converting midi file to usable format: https://www.youtube.com/watch?v=3cbOJfseS9w
 
 ### Supported Syntaxes
 * The application will parse files differently based on the music file extension. You can find examples for each format in the music directory within dist or src directories.
