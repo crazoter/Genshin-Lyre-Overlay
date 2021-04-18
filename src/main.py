@@ -7,11 +7,13 @@ import random
 from multiprocessing import Process, Lock
 import mss
 import threading
+# import matplotlib.pyplot as plt
 
 import main_overlay
 
 from tkinter import *
 from tkinter import scrolledtext, messagebox
+from tkinter import font as tkfont
 
 HUE_80_90_THRESHOLD = 0.3
 
@@ -42,6 +44,8 @@ def mssthread(app):
             # Get raw pixels from the screen, save it to a Numpy array
             img = np.array(sct.grab(monitor))
             img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            # plt.imshow(img)
+            # plt.show()
 
             # For now we'll not be using S,V
             img = np.delete(img, [1,2], 1)
@@ -60,10 +64,9 @@ def mssthread(app):
                         print("msst ACQ", time.time())
                         app.keys_and_timings_mutex.acquire()
                         print("msst", key_val, app.keys_and_timings_to_track, app.false_notes)
-                        if key_val in app.keys_and_timings_to_track:
+                        success = key_val in app.keys_and_timings_to_track and app.keys_and_timings_to_track[key_val] > 0
+                        if success:
                             app.keys_and_timings_to_track[key_val] -= 1
-                            if app.keys_and_timings_to_track[key_val] == 0:
-                                del app.keys_and_timings_to_track[key_val]
                             app.score += 1
                         else:
                             app.false_notes += 1
@@ -146,15 +149,15 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         print(self.get_monitor())
 
         # GAME
-        self.START_CHECKI = 20 # ~666ms
+        self.START_KEYPRESS_CHECKITER = 30 # ~1s
 
         # Keyboard UI
         self.KB_SECONDS_TO_START_ANIMATION = 10        # Number of seconds before we begin animating the circle
         self.KB_ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.KB_SECONDS_TO_START_ANIMATION
         self.CIRCLE_WAIT_ITERS_TO_SYNC = self.KB_ITERATIONS_UNTIL_ANIM_OVER - self.ITERATIONS_UNTIL_ANIM_OVER
-        self.KB_BAR_HEIGHT = 200
+        self.KB_BAR_HEIGHT = 150
         self.KB_NOTE_HEIGHT = 10
-        self.KB_HEIGHT = 300
+        self.KB_HEIGHT = 250
         self.KB_DROP_RATE = self.KB_BAR_HEIGHT / self.KB_ITERATIONS_UNTIL_ANIM_OVER
         # this is a pretty funny hack
         # basically every tick will increment the iteration value from 0 to ITER_UNTIL_ANIM_OVER, then remove it when it reaches
@@ -189,10 +192,50 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.kb_sidenote_printedto_idx = 0
         self.KB_CHANGING_NOTE_LENGTH = 255
         self.KB_CHANGINGNOTE_QUANT = 1
-        self.kb_changingnote_obj = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70, font="11", fill="yellow", anchor=W)
+        # self.kb_changingnote_obj = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70, font="11", fill="yellow", anchor=W)
         self.kb_changingnote_txt = ""
         self.kb_changingnote_idx = 0
         self.kb_changingnote_tick = 0
+        self.kb_changingnote_notearr = [] # This will be used to hold (startIdx, endIdx) pairs for every note in the string
+        self.kb_changingnote_notearr_idx = 0
+
+        # https://stackoverflow.com/questions/29368737/how-to-color-a-substring-in-tkinter-canvas
+        fn = "Sans Serif"
+        fs = 14
+        self.my_font = tkfont.Font(family=fn, size=fs)
+
+        # words = '''I am writing a program that involves displaying some text in a create_text() box on a Tkinter canvas, within a loop. Each word is displayed, then replaced by the next. Sort of like flash cards. I need to color one letter of each word, close to the middle of the word, so that when the user is reading the words their eyes focus on the middle of the word. So if len(i)=1, color i[0], if len(i)>= 2 and <= 5, color i[1], and so on. It needs to be done using the Canvas, and using canvas.create_text(text = i[focus_index],fill = 'red') The result should print like this exaMple (but obviously "m" would be colored red, not be uppercase)'''
+        # words = words.split()
+        self.initial_scrolling_text_offset = self.KB_BAR_HEIGHT + 70
+        # t1 = self.kb_canvas.create_text(200,100,text='', anchor='e', font=my_font, fill='green')
+        self.t2 = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70,text='', anchor='w', font=self.my_font, fill='yellow')
+        self.t3 = self.kb_canvas.create_text(40, self.KB_BAR_HEIGHT + 70,text='', anchor='w', font=self.my_font, fill='orange')
+        # t3 = self.kb_canvas.create_text(200,100,text='', anchor='w', font=my_font, fill='yellow')
+        # new_word(0)
+
+    def update_scrolling_text(self, newtext):
+        # Todo: use self.kb_changingnote_notearr_idx to update the idx instead
+        idx = 0
+        counter = self.START_KEYPRESS_CHECKITER
+        while counter > 0 and idx < len(newtext):
+            if newtext[idx] == '.':
+                counter -= 1
+                idx += 1
+            elif newtext[idx] == '(' or newtext[idx] == '{':
+                counter += 1
+                idx += 1
+            else:
+                idx += 1
+
+        front = newtext[:idx]
+        back = newtext[idx + 1:]
+        self.kb_canvas.itemconfigure(self.t2, text=front)
+        # self.kb_canvas.itemconfigure(t2, text=letter)
+        self.kb_canvas.itemconfigure(self.t3, text=back)
+        # self.kb_canvas.coords(self.t1, 200-self.my_font.measure(letter)/2, 100)
+        self.kb_canvas.coords(self.t3, 40+self.my_font.measure(front), self.initial_scrolling_text_offset)
+
+        # self.root.after(100, lambda: new_word(i+1))
 
     def reformat_outlines_callback(self, sv):
         if (sv.get().isdigit()):
@@ -209,6 +252,8 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.songdata_idx = 0
         self.kb_sidenote_printedto_idx = 0
         self.kb_changingnote_txt = "." * (int(self.ITERATIONS_UNTIL_ANIM_OVER - self.KB_ANIM_START_VAL) // self.KB_CHANGINGNOTE_QUANT)
+        self.kb_changingnote_notearr = []
+        self.kb_changingnote_notearr_idx = 0
         print(self.ITERATIONS_UNTIL_ANIM_OVER - self.KB_ANIM_START_VAL)
         self.kb_changingnote_idx = 0
         if self.iv_isgame.get() == 1:
@@ -230,8 +275,10 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             while time_count > 0:
                 time_count -= self.MS_PER_FRAME
                 counts += 1
+            # The plan is to strategically identify which notes can stretched over future '.'s so as to reduce the jittery effect
             note_str_len = len("{" + row[0] + ")")
             if counts > note_str_len + 1:
+                self.kb_changingnote_notearr.append((len(self.kb_changingnote_txt), len(self.kb_changingnote_txt) + note_str_len))
                 self.kb_changingnote_txt += "{" + row[0] + ")"
                 self.kb_changingnote_txt += '.' * max(0, (counts - 1 + 1 - note_str_len) // self.KB_CHANGINGNOTE_QUANT)
             else:
@@ -240,7 +287,8 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
         # Try to make it smoother by making it occupy some spaces behind instead
 
-        self.kb_canvas.itemconfig(self.kb_changingnote_obj, text=self.kb_changingnote_txt[0:self.KB_CHANGING_NOTE_LENGTH])
+        # self.kb_canvas.itemconfig(self.kb_changingnote_obj, text=self.kb_changingnote_txt[0:self.KB_CHANGING_NOTE_LENGTH])
+        self.update_scrolling_text(self.kb_changingnote_txt[0:self.KB_CHANGING_NOTE_LENGTH])
 
         # add a placeholder element if we are not showing the keyboard for event handling
         if (self.iv_showkeyboard.get() == 0):
@@ -300,8 +348,8 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                     # Skip the closing bracket too
                     self.kb_changingnote_idx += 1
 
-                self.kb_canvas.itemconfig(self.kb_changingnote_obj, 
-                    text=self.kb_changingnote_txt[self.kb_changingnote_idx: self.kb_changingnote_idx + self.KB_CHANGING_NOTE_LENGTH])
+                #self.kb_canvas.itemconfig(self.kb_changingnote_obj,  text=self.kb_changingnote_txt[self.kb_changingnote_idx: self.kb_changingnote_idx + self.KB_CHANGING_NOTE_LENGTH])
+                self.update_scrolling_text(self.kb_changingnote_txt[self.kb_changingnote_idx: self.kb_changingnote_idx + self.KB_CHANGING_NOTE_LENGTH])
         
         if self.iv_isgame.get() == 1:
             self.update_score()
@@ -313,8 +361,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # even if nothing is being drawn
             timing = 0
             # we need to sync the circle animation, so make it wait for the keyboard
-            if self.iv_showkeyboard.get() == 1:
-                timing = -self.CIRCLE_WAIT_ITERS_TO_SYNC
+            # Actually, since the scrolling text follows the same timestep as the keyboard, let's just wait for them both
+            # if self.iv_showkeyboard.get() == 1:
+            timing = -self.CIRCLE_WAIT_ITERS_TO_SYNC
             note_in_animation = [timing, None, 0, c]
             if self.iv_animatecircles.get() == 1:
                 curr_x, curr_y = self.charmap[c]
@@ -342,12 +391,13 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             return
 
         iterations, obj, is_keyboard_note, c = note
-        print("ODN ACQ")
+        print("ODN ACQ", c)
         self.keys_and_timings_mutex.acquire()
         if c in self.keys_and_timings_to_track:
-            if self.keys_and_timings_to_track[c] <= 0:
-                del self.keys_and_timings_to_track[c]
-            else:
+            # if self.keys_and_timings_to_track[c] <= 0:
+            #    del self.keys_and_timings_to_track[c]
+            # else:
+            if self.keys_and_timings_to_track[c] > 0:
                 self.keys_and_timings_to_track[c] -= 1
         # Python will hang if I update the label in critical section
         # self.update_score()
@@ -372,7 +422,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
             # There will always be one non keyboard note even if circles are not animated
             if self.iv_isgame.get() == 1:
-                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_CHECKI):
+                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
                     print("ANIM ACQ")
                     self.keys_and_timings_mutex.acquire()
                     if c in self.keys_and_timings_to_track:
@@ -465,12 +515,18 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
     # Note: the code doesn't account for the fact that the screen may be out of bounds.
     def get_monitor(self):
         self.root.update()
+        # I soon realize that r is not actually the radius, but welp lmao
+        r = int(self.sv_radius.get()) # deduct the width of the circle outline
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
         # print("y", self.canvas.winfo_rooty(), self.top_frame.winfo_rooty())
         return {
-            "left": self.canvas.winfo_rootx(),
-            "top": self.canvas.winfo_rooty(),
-            "width": self.canvas.winfo_width(),
-            "height": self.canvas.winfo_height()
+            "left": self.canvas.winfo_rootx() + x_offset - r,
+            "top": self.canvas.winfo_rooty() + y_offset - r,
+            "width": (7 * (r + x_spacing)), # self.canvas.winfo_width(),
+            "height": (3 * (r + y_spacing)) # self.canvas.winfo_height()
         }
 
     def screen_prep(self):
@@ -478,19 +534,21 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.key_positions = []
 
         r = int(self.sv_radius.get()) # deduct the width of the circle outline
-        x_offset = int(self.sv_x_spacing.get())
-        y_offset = int(self.sv_y_spacing.get())
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
 
-        curr_x = r + x_offset
-        curr_y = r + y_offset
+        curr_x = r
+        curr_y = r
         
         for k in range(3):
             for j in range(7):        
                 # -3 to remove the circle outline
                 self.key_positions.append((curr_x - (r - 3), curr_x + r - 3, curr_y - (r - 3), curr_y + r - 3, KEYS[k][j]))
-                curr_x += r + x_offset
-            curr_x = r + x_offset
-            curr_y += r + y_offset
+                curr_x += r + x_spacing
+            curr_x = r
+            curr_y += r + y_spacing
  
 if __name__ == "__main__":
     my_application = KeyRecordApplication()

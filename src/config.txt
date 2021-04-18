@@ -1,4 +1,6 @@
-filename: music/ryu_my_memory.midi.txt
+filename: music/three_stars.midi.txt
 radius: 38
 x_spacing: 81
 y_spacing: 56
+x_offset: 601
+y_offset: 0438

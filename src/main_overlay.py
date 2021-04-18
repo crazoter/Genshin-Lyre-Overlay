@@ -42,6 +42,8 @@ class OverlayApplication(Application):
         self.sv_radius = StringVar(self.root, value=str(29))
         self.sv_x_spacing = StringVar(self.root, value=str(60))
         self.sv_y_spacing = StringVar(self.root, value=str(44))
+        self.sv_x_offset = StringVar(self.root, value=str(60))
+        self.sv_y_offset = StringVar(self.root, value=str(60))
 
         # https://stackoverflow.com/questions/713794/catching-an-exception-while-using-a-python-with-statement
         try:
@@ -53,6 +55,10 @@ class OverlayApplication(Application):
                         self.sv_x_spacing.set(line.strip().split()[1])
                     if "y_spacing" in line:
                         self.sv_y_spacing.set(line.strip().split()[1])
+                    if "x_offset" in line:
+                        self.sv_x_offset.set(line.strip().split()[1])
+                    if "y_offset" in line:
+                        self.sv_y_offset.set(line.strip().split()[1])
         except IOError: 
             print("config.txt file couldn't be opened (you may want to have one in the same directory)")
         except IndexError:
@@ -64,20 +70,28 @@ class OverlayApplication(Application):
         self.sv_radius.trace_add("write", lambda name, index, mode, sv=self.sv_radius: self.reformat_outlines_callback(self.sv_radius))
         self.sv_y_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_y_spacing: self.reformat_outlines_callback(self.sv_y_spacing))
         self.sv_x_spacing.trace_add("write", lambda name, index, mode, sv=self.sv_x_spacing: self.reformat_outlines_callback(self.sv_x_spacing))
+        self.sv_x_offset.trace_add("write", lambda name, index, mode, sv=self.sv_x_offset: self.reformat_outlines_callback(self.sv_x_offset))
+        self.sv_y_offset.trace_add("write", lambda name, index, mode, sv=self.sv_y_offset: self.reformat_outlines_callback(self.sv_y_offset))
 
         # create the widgets for the top frame
         label_radius = Label(self.top_frame, text='Circle radius')
-        entry_radius = Entry(self.top_frame, background="lavender", textvariable=self.sv_radius)
+        entry_radius = Entry(self.top_frame, background="lavender", textvariable=self.sv_radius, width=7)
         label_x_spacing = Label(self.top_frame, text='Circle x spacing')
-        entry_x_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_x_spacing)
+        entry_x_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_x_spacing, width=7)
         label_y_spacing = Label(self.top_frame, text='Circle y spacing')
-        entry_y_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_y_spacing)
+        entry_y_spacing = Entry(self.top_frame, background="lavender", textvariable=self.sv_y_spacing, width=7)
+        label_x_offset = Label(self.top_frame, text='Circle x offset')
+        entry_x_offset = Entry(self.top_frame, background="lavender", textvariable=self.sv_x_offset, width=7)
+        label_y_offset = Label(self.top_frame, text='Circle y offset')
+        entry_y_offset = Entry(self.top_frame, background="lavender", textvariable=self.sv_y_offset, width=7)
         label_descriptlabel = Label(self.top_frame, text='Song Name', textvariable=self.sv_descriptlabel)
 
         # Store in list for us to enable / disable
         self.inputObjects.append(entry_radius)
         self.inputObjects.append(entry_x_spacing)
         self.inputObjects.append(entry_y_spacing)
+        self.inputObjects.append(entry_x_offset)
+        self.inputObjects.append(entry_y_offset)
 
         # layout the widgets in the top frame
         label_radius.grid(row=0, column=3)
@@ -86,13 +100,19 @@ class OverlayApplication(Application):
         entry_x_spacing.grid(row=0, column=6)
         label_y_spacing.grid(row=0, column=7)
         entry_y_spacing.grid(row=0, column=8)
+        label_x_offset.grid(row=0, column=9)
+        entry_x_offset.grid(row=0, column=10)
+        label_y_offset.grid(row=0, column=11)
+        entry_y_offset.grid(row=0, column=12)
         label_descriptlabel.grid(row=1, column=0, columnspan=9)
 
         r = int(self.sv_radius.get())
-        x_offset = int(self.sv_x_spacing.get())
-        y_offset = int(self.sv_y_spacing.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
 
-        self.canvas = Canvas(self.center, bg='white', height=((y_offset + r) * (self.BUTTON_ROWS + 1)), width=((x_offset + r) * (self.BUTTON_COLS + 1)))
+        self.canvas = Canvas(self.center, bg='white', height=(y_offset + (y_spacing + r) * (self.BUTTON_ROWS)), width=(x_offset + (x_spacing + r) * (self.BUTTON_COLS)))
         self.canvas.grid(row=0, column=1, sticky="nsew")
 
         self.redraw_outlines()
@@ -101,10 +121,12 @@ class OverlayApplication(Application):
         super().on_closing(False)
         print("overlay closing")
         with open("config.txt", "a") as f:
-            f.write('radius: {0}\nx_spacing: {1}\ny_spacing: {2}\n'.format(
+            f.write('radius: {0}\nx_spacing: {1}\ny_spacing: {2}\nx_offset: {3}\ny_offset: {4}'.format(
                 self.sv_radius.get(),
                 self.sv_x_spacing.get(),
-                self.sv_y_spacing.get()
+                self.sv_y_spacing.get(),
+                self.sv_x_offset.get(),
+                self.sv_y_offset.get()
             ))
 
         if call_root_destroy:
@@ -119,11 +141,13 @@ class OverlayApplication(Application):
     def redraw_outlines(self, draw_labels = True):
         self.canvas.delete("all")
         r = int(self.sv_radius.get())
-        x_offset = int(self.sv_x_spacing.get())
-        y_offset = int(self.sv_y_spacing.get())
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
 
-        curr_x = r + x_offset
-        curr_y = r + y_offset
+        curr_x = x_offset
+        curr_y = y_offset
         
         for i in range(self.BUTTON_ROWS):
             for j in range(self.BUTTON_COLS):
@@ -131,9 +155,9 @@ class OverlayApplication(Application):
                 if draw_labels:
                     self.keyboard_outline_objs.append(self.canvas.create_circle(curr_x, curr_y, 11, outline="#FFF9EF", fill="#FFF9EF"))
                     self.keyboard_outline_objs.append(self.canvas.create_text(curr_x, curr_y,fill="black",font="Times 14 bold", text=KEYS[i][j]))
-                curr_x += r + x_offset
-            curr_x = r + x_offset
-            curr_y += r + y_offset
+                curr_x += r + x_spacing
+            curr_x = x_offset
+            curr_y += r + y_spacing
 
     def set_bbox_expansion_rate_per_frame(self):
         bounding_box_width = int(self.sv_radius.get())
@@ -141,18 +165,20 @@ class OverlayApplication(Application):
 
     def set_charmap(self):
         r = int(self.sv_radius.get())
-        x_offset = int(self.sv_x_spacing.get())
-        y_offset = int(self.sv_y_spacing.get())
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
 
-        curr_x = r + x_offset
-        curr_y = r + y_offset
+        curr_x = x_offset
+        curr_y = y_offset
 
         for row in KEYS:
             for k in row:
                 self.charmap[k] = (curr_x, curr_y)
-                curr_x += r + x_offset
-            curr_x = r + x_offset
-            curr_y += r + y_offset
+                curr_x += r + x_spacing
+            curr_x = x_offset
+            curr_y += r + y_spacing
 
     # Overriden method
     def post_play_press_pre_data_parse(self):
