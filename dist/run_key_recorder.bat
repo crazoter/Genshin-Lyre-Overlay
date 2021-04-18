@@ -1,0 +1,2 @@
+.\key-recorder.exe
+@pause
