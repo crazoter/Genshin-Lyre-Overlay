@@ -18,6 +18,7 @@ import json
 
 from typing import List
 from tkinter import *
+from tkinter import messagebox
 from PIL import ImageTk, Image
 
 # Resources:
@@ -244,24 +245,31 @@ class Application():
         self.post_play_press_pre_data_parse()
         self.songdata_idx = -1
         # here I assume the user inputs the correct filename
-        if self.sv_filename.get().lower().endswith('.midi.txt'):
-            self.read_music_txtmidi()
-            self.post_data_parse()
-            self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
-        elif self.sv_filename.get().lower().endswith('.txt'):
-            self.read_music_txt()
-            self.post_data_parse()
-            self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
-        elif self.sv_filename.get().lower().endswith('.json'):
-            self.read_music_sky_json()
-            self.post_data_parse()
-            self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
-        #elif self.sv_filename.get().lower().endswith('.midi'):
-        #    print("not yet supported")
-        else: # Nothing happened because we don't support any of the file formats
-            print("File format not supported")
+        try:
+            if self.sv_filename.get().lower().endswith('.midi.txt'):
+                self.read_music_txtmidi()
+                self.post_data_parse()
+                self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+            elif self.sv_filename.get().lower().endswith('.txt'):
+                self.read_music_txt()
+                self.post_data_parse()
+                self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+            elif self.sv_filename.get().lower().endswith('.json'):
+                self.read_music_sky_json()
+                self.post_data_parse()
+                self.root.after(self.DELAY_AFTER_PLAY_PRESSED, self.play_song_tick)
+            #elif self.sv_filename.get().lower().endswith('.midi'):
+            #    print("not yet supported")
+            else: # Nothing happened because we don't support any of the file formats
+                print("File format not supported")
+                self.enable_inputs()
+                self.sv_descriptlabel.set(HELP_STRING)
+        except IOError as e:
+            print(e)
+            messagebox.showinfo("Error", e) 
             self.enable_inputs()
             self.sv_descriptlabel.set(HELP_STRING)
+        
     
     def post_play_press_pre_data_parse(self):
         print("WARNING: post_play_press_pre_data_parse IS NOT IMPLEMENTED")

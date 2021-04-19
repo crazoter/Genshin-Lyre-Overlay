@@ -1,5 +1,5 @@
 Name: Three Stars (By Sebastian Skaf, Arr. by Esrid Dersi)
-Speed: 1.0
+Speed: 0.5
 79 960
 76 1440
 48 1440

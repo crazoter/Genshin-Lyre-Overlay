@@ -206,12 +206,18 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
     # Note: the code doesn't account for the fact that the screen may be out of bounds.
     def get_monitor(self):
         self.root.update()
+        # I soon realize that r is not actually the radius, but welp lmao
+        r = int(self.sv_radius.get()) # deduct the width of the circle outline
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
         # print("y", self.canvas.winfo_rooty(), self.top_frame.winfo_rooty())
         return {
-            "left": self.canvas.winfo_rootx(),
-            "top": self.canvas.winfo_rooty(),
-            "width": self.canvas.winfo_width(),
-            "height": self.canvas.winfo_height()
+            "left": self.canvas.winfo_rootx() + x_offset - r,
+            "top": self.canvas.winfo_rooty() + y_offset - r,
+            "width": (7 * (r + x_spacing)), # self.canvas.winfo_width(),
+            "height": (3 * (r + y_spacing)) # self.canvas.winfo_height()
         }
 
     def start_button_press(self, event=' '):
@@ -244,6 +250,28 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.key_positions = []
 
         r = int(self.sv_radius.get()) # deduct the width of the circle outline
+        x_offset = int(self.sv_x_offset.get())
+        y_offset = int(self.sv_y_offset.get())
+        x_spacing = int(self.sv_x_spacing.get())
+        y_spacing = int(self.sv_y_spacing.get())
+
+        curr_x = r
+        curr_y = r
+        
+        for k in range(3):
+            for j in range(7):        
+                # -3 to remove the circle outline
+                self.key_positions.append((curr_x - (r - 3), curr_x + r - 3, curr_y - (r - 3), curr_y + r - 3, KEYS[k][j]))
+                curr_x += r + x_spacing
+            curr_x = r
+            curr_y += r + y_spacing
+
+    """
+    def screen_prep(self):
+        # (left_incl, right_excl, top_incl, btm_excl)
+        self.key_positions = []
+
+        r = int(self.sv_radius.get()) # deduct the width of the circle outline
         x_offset = int(self.sv_x_spacing.get())
         y_offset = int(self.sv_y_spacing.get())
 
@@ -254,7 +282,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             for j in range(7):        
                 # -3 to remove the circle outline
                 self.key_positions.append((curr_x - (r - 3), curr_x + r - 3, curr_y - (r - 3), curr_y + r - 3, KEYS[k][j]))
-                """
+                #
                 i = (curr_x - r, curr_x + r - 1, curr_y - r, curr_y + r - 1)
                 crop = img[i[2] : i[3], i[0] : i[1]]
 
@@ -267,27 +295,28 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                 # print(crop)
                 # print("\n\n\n")
                 # green threshold: H and S between 80 and 90
-                """
+                #
                 curr_x += r + x_offset
-                """
+                #
                 # Snippet for checking code
                 import numpy as np
                 a = np.asarray([ [1,2], [3,4], [4,1], [6,2], [5,3], [0,4] ])
                 print(a)
                 print(np.count_nonzero((0 < a) & (a < 2)))
-                """
+                # 
                 # Snippet for getting colour characteristics    
-                """
+                #
                 color = ('b','g','r')
                 for f,col in enumerate(color):
                     histr = cv2.calcHist([crop],[f],None,[256],[0,256])
                     plt.plot(histr,color = col)
                     plt.xlim([0,256])
                 plt.show()
-                """
+                # 
                 # return
             curr_x = r + x_offset
             curr_y += r + y_offset
+    """
  
 if __name__ == "__main__":
     my_application = KeyRecordApplication()

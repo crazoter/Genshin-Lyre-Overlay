@@ -454,9 +454,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
     
     # override
     def song_ended(self):
-        if self.iv_isgame.get() == 0:
+        if self.iv_isgame.get() == 0 or self.scoreables <= 0:
             return
-
+             
         self.run_mssthread = False
         final_score = (self.score - 0.5 * (self.false_notes)) / (self.scoreables * 1.0)
         print(final_score)

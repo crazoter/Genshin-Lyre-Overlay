@@ -1,6 +1,6 @@
-filename: music/three_stars.midi.txt
+filename: music/rickrol.txt
 radius: 38
 x_spacing: 81
-y_spacing: 56
-x_offset: 601
-y_offset: 0438
+y_spacing: 55
+x_offset: 600
+y_offset: 440
