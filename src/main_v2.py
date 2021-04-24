@@ -16,7 +16,7 @@ from tkinter import scrolledtext, messagebox
 from tkinter import font as tkfont
 
 # If you want to enable macro, need to run in admin mode
-# from pynput.keyboard import Key, Controller
+from pynput.keyboard import Key, Controller
 
 
 HUE_80_90_THRESHOLD = 0.3
@@ -145,10 +145,15 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         c3 = Checkbutton(self.top_frame, text='Animate Keyboard (Laggy)',variable=self.iv_showkeyboard, onvalue=1, offvalue=0,fg='red')
         c3.grid(row=2, column=4, columnspan=2)
         self.inputObjects.append(c3)
+
+        self.iv_macro = IntVar(value=0)
+        c3 = Checkbutton(self.top_frame, text='Enable Macro (Run program as admin)',variable=self.iv_macro, onvalue=1, offvalue=0,fg='red')
+        c3.grid(row=2, column=6, columnspan=2)
+        self.inputObjects.append(c3)
         
         # self.sv_scorelabel = StringVar(self.root, value="Score: ")
         self.label_score = Label(self.top_frame, text='')
-        self.label_score.grid(row=2, column=6, columnspan=8)
+        self.label_score.grid(row=2, column=8, columnspan=8)
 
         # run event loop until window appears
         self.root.wait_visibility()
@@ -225,9 +230,6 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # print(offset, text_width, self.height_per_key)
             self.canvas.create_rectangle(0, offset, text_width, offset + self.note_height, outline="black", fill="black")
             self.canvas.create_text(text_width / 2, offset + self.height_per_key / 2 - 1, fill=fill, font="Serif 11 bold", text=key)
-
-
-        
 
     def update_scrolling_text(self, newtext):
         # Todo: use self.kb_changingnote_notearr_idx to update the idx instead
@@ -312,6 +314,15 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             note_in_animation = [30-len(self.kb_changingnote_txt), None, 2, '']
             self.notes_in_animation.append(note_in_animation)
 
+        # Print song name
+        songname_height = self.canvas.winfo_height() / 2
+        self.notes_in_animation.append(
+            (self.ITERATIONS_UNTIL_ANIM_OVER, self.canvas.create_rectangle(0, songname_height - 20, self.canvas_width, songname_height + 20, fill="black"), 1, '')
+        )
+        self.notes_in_animation.append(
+            (self.ITERATIONS_UNTIL_ANIM_OVER, self.canvas.create_text(self.canvas_width / 2, songname_height + 10, fill='#EEE', font="Serif 11 bold", text=self.songname), 1, '')
+        )
+
 
     # Overriden method
     def play_notes(self, note_string):
@@ -392,7 +403,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                 colour = KEY_INFO_MAP[c][1][0]
                 outline = KEY_INFO_MAP[c][1][1]
 
-                print(self.canvas_width)
+                # print(self.canvas_width)
                 self.notes_in_animation.append(
                     (self.KB_ANIM_START_VAL, self.canvas.create_rectangle(self.canvas_width, curr_y, self.canvas_width + self.note_width, curr_y + self.note_height, outline=outline, fill=colour), 1, c)
                 )
@@ -438,9 +449,6 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # There will always be one non keyboard note even if circles are not animated
             if self.iv_isgame.get() == 1:
                 if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
-                    char_val = c.lower()
-                    # self.keyboard.press(char_val)
-                    # self.keyboard.release(char_val)
                     print("ANIM ACQ")
                     self.keys_and_timings_mutex.acquire()
                     if c in self.keys_and_timings_to_track:
@@ -450,6 +458,13 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                     self.scoreables += 1
                     self.keys_and_timings_mutex.release()
                     print("ANIM REL")
+            
+            if self.iv_macro.get() == 1:
+                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
+                    char_val = c.lower()
+                    self.keyboard.press(char_val)
+                    self.keyboard.release(char_val)
+
         
         if type_of_display == 1 and self.iv_showkeyboard.get() == 1:
                 # Get coords
@@ -463,7 +478,8 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                         x2 - self.KB_DROP_RATE, y2)
                     # Change box color
                     if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
-                        self.canvas.itemconfig(obj, fill=KEY_INFO_MAP[c][1][2])
+                        if c in KEY_INFO_MAP:
+                            self.canvas.itemconfig(obj, fill=KEY_INFO_MAP[c][1][2])
                 else:
                     # Text only have 2 coordinates
                     x, y = coords
