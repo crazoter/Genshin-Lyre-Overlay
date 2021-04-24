@@ -15,6 +15,10 @@ from tkinter import *
 from tkinter import scrolledtext, messagebox
 from tkinter import font as tkfont
 
+# If you want to enable macro, need to run in admin mode
+# from pynput.keyboard import Key, Controller
+
+
 HUE_80_90_THRESHOLD = 0.3
 
 KEYS = [['Q','W','E','R','T','Y','U'],
@@ -108,6 +112,9 @@ def append_txt(text, value):
 class KeyRecordApplication(main_overlay.OverlayApplication):
     def __init__(self):
         super().__init__()
+        # self.keyboard = Controller()
+        self.root.wm_attributes("-alpha", "0.7")
+
         print("Starting the application (this could take some time)")
 
         self.keys_and_timings_to_track = {}
@@ -167,7 +174,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.kb_sidenote_offset = (self.songdata_idx, 0)
         # Draw keyboard
         # create & layout the canvas
-        self.kb_canvas = Canvas(self.center, bg='black', height=self.KB_HEIGHT, width=900)
+        self.kb_canvas = Canvas(self.center, bg='white', height=self.KB_HEIGHT, width=900)
         self.kb_canvas.grid(row=2, column=1, sticky="nsew")
         self.kb_canvas.create_text(10, self.KB_BAR_HEIGHT + 30, fill='yellow', font="Times 8 bold", text='1')
         self.kb_canvas.create_text(10, self.KB_BAR_HEIGHT + 40, fill='yellow', font="Times 8 bold", text='2')
@@ -187,6 +194,8 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             elif key in KEYS[2]:
                 height_offset = self.KB_BAR_HEIGHT + 50
             self.kb_canvas.create_rectangle(offset, self.KB_BAR_HEIGHT, offset + 20, self.KB_BAR_HEIGHT + self.KB_NOTE_HEIGHT, outline="gray", fill="gray")
+            self.kb_canvas.create_text(offset + 11, height_offset-1, fill='black', font="Times 11 bold", text=key)
+            self.kb_canvas.create_text(offset + 13, height_offset+1, fill='black', font="Times 11 bold", text=key)
             self.kb_canvas.create_text(offset + 12, height_offset, fill=colour, font="Times 11 bold", text=key)
         
         self.kb_sidenote_printedto_idx = 0
@@ -272,17 +281,18 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # naive but simple solution
             counts = 0
             time_count = row[1]
+            val = "".join(sorted(row[0]))
             while time_count > 0:
                 time_count -= self.MS_PER_FRAME
                 counts += 1
             # The plan is to strategically identify which notes can stretched over future '.'s so as to reduce the jittery effect
-            note_str_len = len("{" + row[0] + ")")
+            note_str_len = len("{" + val + ")")
             if counts > note_str_len + 1:
                 self.kb_changingnote_notearr.append((len(self.kb_changingnote_txt), len(self.kb_changingnote_txt) + note_str_len))
-                self.kb_changingnote_txt += "{" + row[0] + ")"
+                self.kb_changingnote_txt += "{" + val + ")"
                 self.kb_changingnote_txt += '.' * max(0, (counts - 1 + 1 - note_str_len) // self.KB_CHANGINGNOTE_QUANT)
             else:
-                self.kb_changingnote_txt += "(" + row[0] + ")"
+                self.kb_changingnote_txt += "(" + val + ")"
                 self.kb_changingnote_txt += '.' * max(0, (counts - 1) // self.KB_CHANGINGNOTE_QUANT)
 
         # Try to make it smoother by making it occupy some spaces behind instead
@@ -379,7 +389,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                     colour = "light blue"
                     # textcolor = "black"
                 self.notes_in_animation.append(
-                    (self.KB_ANIM_START_VAL, self.kb_canvas.create_rectangle(curr_x, 0, curr_x + 20, 14, outline='black', fill=colour), 1, c)
+                    (self.KB_ANIM_START_VAL, self.kb_canvas.create_rectangle(curr_x, 0, curr_x + 20, 14, outline='grey', fill=colour), 1, c)
                 )
                 self.notes_in_animation.append(
                     (self.KB_ANIM_START_VAL, self.kb_canvas.create_text(curr_x + 10, 6, fill='black', font="Times 8 bold", text=c), 1, c)
@@ -423,6 +433,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # There will always be one non keyboard note even if circles are not animated
             if self.iv_isgame.get() == 1:
                 if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
+                    char_val = c.lower()
+                    # self.keyboard.press(char_val)
+                    # self.keyboard.release(char_val)
                     print("ANIM ACQ")
                     self.keys_and_timings_mutex.acquire()
                     if c in self.keys_and_timings_to_track:

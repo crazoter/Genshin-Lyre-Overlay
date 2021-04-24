@@ -1,6 +1,6 @@
-filename: music/rickrol.txt
+filename: music/shop_simple.midi.txt
 radius: 38
-x_spacing: 81
+x_spacing: 80
 y_spacing: 55
 x_offset: 600
-y_offset: 440
+y_offset: 680
