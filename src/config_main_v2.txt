@@ -1,0 +1,8 @@
+filename: music/sample.txt
+geom: 1920x1001+0+0
+root_state: zoomed
+radius: 29
+x_spacing: 60
+y_spacing: 44
+x_offset: 60
+y_offset: 60

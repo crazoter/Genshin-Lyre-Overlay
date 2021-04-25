@@ -32,8 +32,8 @@ LEFT_HAND_KEY_LIST = {
 }
 KEY_LIST = [ 'U', 'Y', 'T', 'R', 'E', 'W', 'Q', 'J', 'H', 'G', 'F', 'D', 'S', 'A', 'M', 'N', 'B', 'V', 'C', 'X', 'Z' ]
 
-# Primary Color, Dark Color, Highlighted Color
-KEY_COLOR_LIST = [('#B00', '#800', '#F00'), ('#0B0', '#080', '#0F0'), ('#00B', '#008', '#00F')]
+# Primary Color, Dark Color, Highlighted Color, font color
+KEY_COLOR_LIST = [('#B00', '#800', '#F00','#000'), ('#0B0', '#080', '#0F0','#000'), ('#55F', '#55F', '#88F','#EEE')]
 
 KEY_INFO_MAP = {}
 # Index, 
@@ -69,20 +69,20 @@ def mssthread(app):
                     # Key was pressed
                     if not key_state[i[4]]:
                         key_val = i[4]
-                        print("msst ACQ", time.time())
+                        # print("msst ACQ", time.time())
                         app.keys_and_timings_mutex.acquire()
-                        print("msst", key_val, app.keys_and_timings_to_track, app.false_notes)
+                        # print("msst", key_val, app.keys_and_timings_to_track, app.false_notes)
                         success = key_val in app.keys_and_timings_to_track and app.keys_and_timings_to_track[key_val] > 0
                         if success:
                             app.keys_and_timings_to_track[key_val] -= 1
                             app.score += 1
                         else:
                             app.false_notes += 1
-                        print("msst uscore", time.time())
+                        # print("msst uscore", time.time())
                         # app.update_score()
-                        print("msst EXIT", time.time())
+                        # print("msst EXIT", time.time())
                         app.keys_and_timings_mutex.release()
-                        print("msst REL", time.time())
+                        # print("msst REL", time.time())
                     key_state[i[4]] = True
 
                 else:
@@ -117,10 +117,10 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
     def __init__(self):
         self.MIN_HEIGHT_PER_KEY = 2
         self.SCROLL_TEXT_HEIGHT = 20
+        self.config_filename = "config_main_v2.txt"
         super().__init__()
-        # self.keyboard = Controller()
+        self.keyboard = Controller()
         self.root.wm_attributes("-alpha", "0.8")
-
         print("Starting the application (this could take some time)")
 
         self.keys_and_timings_to_track = {}
@@ -194,6 +194,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
 
         # Redraw outlines without labels
         self.redraw_outlines(self.iv_animatecircles.get() == 1)
+        print(self.root.geometry())
 
     def redraw_outlines(self, draw_circles = True, draw_keyboard = True):
         super().redraw_outlines(draw_circles)
@@ -402,13 +403,14 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                 curr_y = self.SCROLL_TEXT_HEIGHT + KEY_INFO_MAP[c][0] * self.height_per_key
                 colour = KEY_INFO_MAP[c][1][0]
                 outline = KEY_INFO_MAP[c][1][1]
+                font_color = KEY_INFO_MAP[c][1][3]
 
                 # print(self.canvas_width)
                 self.notes_in_animation.append(
                     (self.KB_ANIM_START_VAL, self.canvas.create_rectangle(self.canvas_width, curr_y, self.canvas_width + self.note_width, curr_y + self.note_height, outline=outline, fill=colour), 1, c)
                 )
                 self.notes_in_animation.append(
-                    (self.KB_ANIM_START_VAL, self.canvas.create_text(self.canvas_width + self.note_width / 2, curr_y + self.note_height / 2, fill='black', font="Serif 11 bold", text=c), 1, c)
+                    (self.KB_ANIM_START_VAL, self.canvas.create_text(self.canvas_width + self.note_width / 2, curr_y + self.note_height / 2, fill=font_color, font="Serif 11 bold", text=c), 1, c)
                 )
     
     # Overriden method
@@ -417,7 +419,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             return
 
         iterations, obj, is_keyboard_note, c = note
-        print("ODN ACQ", c)
+        # print("ODN ACQ", c)
         self.keys_and_timings_mutex.acquire()
         if c in self.keys_and_timings_to_track:
             # if self.keys_and_timings_to_track[c] <= 0:
@@ -428,7 +430,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         # Python will hang if I update the label in critical section
         # self.update_score()
         self.keys_and_timings_mutex.release()
-        print("ODN REL")
+        # print("ODN REL")
 
     # Overriden method
     def animate_object(self, i, note_in_animation):
@@ -449,7 +451,7 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             # There will always be one non keyboard note even if circles are not animated
             if self.iv_isgame.get() == 1:
                 if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
-                    print("ANIM ACQ")
+                    # print("ANIM ACQ")
                     self.keys_and_timings_mutex.acquire()
                     if c in self.keys_and_timings_to_track:
                         self.keys_and_timings_to_track[c] += 1
@@ -457,10 +459,10 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
                         self.keys_and_timings_to_track[c] = 1
                     self.scoreables += 1
                     self.keys_and_timings_mutex.release()
-                    print("ANIM REL")
+                    # print("ANIM REL")
             
             if self.iv_macro.get() == 1:
-                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == self.START_KEYPRESS_CHECKITER):
+                if (self.ITERATIONS_UNTIL_ANIM_OVER - iterations == 5):
                     char_val = c.lower()
                     self.keyboard.press(char_val)
                     self.keyboard.release(char_val)

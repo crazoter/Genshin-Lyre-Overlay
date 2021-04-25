@@ -1,6 +1,10 @@
-filename: music/shop_simple.midi.txt
-radius: 38
-x_spacing: 80
-y_spacing: 55
-x_offset: 600
-y_offset: 680
+filename: music/ilvento.json
+radius: 45
+x_spacing: 94
+y_spacing: 67
+x_offset: 380
+y_offset: 515radius: 45
+x_spacing: 94
+y_spacing: 67
+x_offset: 380
+y_offset: 515

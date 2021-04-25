@@ -146,6 +146,7 @@ def append_txt(text, value):
 
 class KeyRecordApplication(main_overlay.OverlayApplication):
     def __init__(self):
+        self.config_filename = "config_key_recorder.txt"
         super().__init__()
         # https://stackoverflow.com/questions/12364981/how-to-delete-tkinter-widgets-from-a-window
         # Remove elements we won't use

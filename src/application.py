@@ -43,6 +43,7 @@ for i in range(len(KEY_LIST)):
 
 # Contribution by Ghostlium
 SKY_JSON_NOTE_MAP = {
+  # Based on actual values from program... Or due to a typo on my part?
   "1Key0": 'Z',# "A1"
   "1Key1": 'X',# "A2"
   "1Key2": 'C',# "A3"
@@ -57,7 +58,23 @@ SKY_JSON_NOTE_MAP = {
   "1Key11": 'G',# "B5"
   "1Key12": 'H',# "B6"
   "1Key13": 'J',# "B7"
-  "1Key14": 'Q'# "C1"
+  "1Key14": 'Q',# "C1"
+  # Based on Specy's sample
+  "Key0": 'Z',# "A1"
+  "Key1": 'X',# "A2"
+  "Key2": 'C',# "A3"
+  "Key3": 'V',# "A4"
+  "Key4": 'B',# "A5"
+  "Key5": 'N',# "A6"
+  "Key6": 'M',# "A7"
+  "Key7": 'A',# "B1"
+  "Key8": 'S',# "B2"
+  "Key9": 'D',# "B3"
+  "Key10": 'F',# "B4"
+  "Key11": 'G',# "B5"
+  "Key12": 'H',# "B6"
+  "Key13": 'J',# "B7"
+  "Key14": 'Q'# "C1"
 }
 
 # https://www.hoyolab.com/genshin/article/271778
@@ -165,17 +182,6 @@ class Application():
         self.root = Tk() 
         self.sv_filename = StringVar(self.root, value="music/sample.txt")
 
-        # Opening the same config file multiple times in multiple inits is not optimal, but sufficient since it's a small file
-        try:
-            with open("config.txt", "r") as f:
-                for line in f:
-                    if "filename" in line:
-                        self.sv_filename.set(line.strip().split()[1])
-        except IOError: 
-            print("config.txt file couldn't be opened (you may want to have one in the same directory)")
-        except IndexError:
-            print("config.txt file is incorrectly formatted")
-
         self.sv_descriptlabel = StringVar(self.root, value=HELP_STRING)
         self.canvas = None
 
@@ -210,12 +216,31 @@ class Application():
 
         self.kb_canvas = None
 
+        if not hasattr(self, 'config_filename'):
+            self.config_filename = "config.txt"
+        self.initial_root_state = 'normal'
+        # Opening the same config file multiple times in multiple inits is not optimal, but sufficient since it's a small file
+        try:
+            with open(self.config_filename, "r") as f:
+                for line in f:
+                    if "filename" in line:
+                        self.sv_filename.set(line.strip().split()[1])
+                    if "geom" in line:
+                        self.root.geometry(line.strip().split()[1])
+                    if "root_state" in line:
+                        # Execute this later on before the mainloop
+                        self.initial_root_state = line.strip().split()[1]
+        except IOError: 
+            print(self.config_filename, "file couldn't be opened (you may want to have one in the same directory)")
+        except IndexError:
+            print(self.config_filename, "file is incorrectly formatted")
+
     
     def on_closing(self, call_root_destroy):
         print("app closing")
-        with open("config.txt", "w") as f:
-            f.write('filename: {0}\n'.format(
-                self.sv_filename.get()
+        with open(self.config_filename, "w") as f:
+            f.write('filename: {0}\ngeom: {1}\nroot_state: {2}\n'.format(
+                self.sv_filename.get(), self.root.geometry(), self.root.state()
             ))
         if call_root_destroy:
             self.root.destroy()
@@ -223,6 +248,7 @@ class Application():
     
     def start(self):
         self.root.protocol("WM_DELETE_WINDOW", lambda arg=True: self.on_closing(arg))
+        self.root.state(self.initial_root_state)
         self.root.mainloop()
 
     def disable_inputs(self):

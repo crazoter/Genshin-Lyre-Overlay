@@ -47,7 +47,7 @@ class OverlayApplication(Application):
 
         # https://stackoverflow.com/questions/713794/catching-an-exception-while-using-a-python-with-statement
         try:
-            with open("config.txt", "r") as f:
+            with open(self.config_filename, "r") as f:
                 for line in f:
                     if "radius" in line:
                         self.sv_radius.set(line.strip().split()[1])
@@ -60,9 +60,16 @@ class OverlayApplication(Application):
                     if "y_offset" in line:
                         self.sv_y_offset.set(line.strip().split()[1])
         except IOError: 
-            print("config.txt file couldn't be opened (you may want to have one in the same directory)")
+            print(self.config_filename, "file couldn't be opened (you may want to have one in the same directory)")
         except IndexError:
-            print("config.txt file is incorrectly formatted")
+            print(self.config_filename, "file is incorrectly formatted")
+            # Reset all numerical values 
+            self.sv_radius = StringVar(self.root, value=str(29))
+            self.sv_x_spacing = StringVar(self.root, value=str(60))
+            self.sv_y_spacing = StringVar(self.root, value=str(44))
+            self.sv_x_offset = StringVar(self.root, value=str(60))
+            self.sv_y_offset = StringVar(self.root, value=str(60))
+
 
         # create the string values for the entries that invoke an event after being changed
 
@@ -120,7 +127,7 @@ class OverlayApplication(Application):
     def on_closing(self, call_root_destroy):
         super().on_closing(False)
         print("overlay closing")
-        with open("config.txt", "a") as f:
+        with open(self.config_filename, "a") as f:
             f.write('radius: {0}\nx_spacing: {1}\ny_spacing: {2}\nx_offset: {3}\ny_offset: {4}'.format(
                 self.sv_radius.get(),
                 self.sv_x_spacing.get(),

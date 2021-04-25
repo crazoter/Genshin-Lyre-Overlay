@@ -1,0 +1,8 @@
+filename: music/sample.txt
+geom: 1538x837+156+99
+root_state: normal
+radius: 29
+x_spacing: 60
+y_spacing: 44
+x_offset: 60
+y_offset: 60
