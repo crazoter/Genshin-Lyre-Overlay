@@ -1,8 +1,8 @@
-filename: music/sample.txt
-geom: 1920x1001+0+0
-root_state: zoomed
-radius: 29
-x_spacing: 60
-y_spacing: 44
-x_offset: 60
-y_offset: 60
+filename: music/shop_simple.midi.txt
+geom: 1602x896+151+71
+root_state: normal
+radius: 45
+x_spacing: 94
+y_spacing: 67
+x_offset: 380
+y_offset: 515
