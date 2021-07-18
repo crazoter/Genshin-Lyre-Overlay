@@ -193,6 +193,8 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
         self.note_width = 20
 
         # Redraw outlines without labels
+        self.t2 = None
+        self.t3 = None
         self.redraw_outlines(self.iv_animatecircles.get() == 1)
         print(self.root.geometry())
 
@@ -233,6 +235,9 @@ class KeyRecordApplication(main_overlay.OverlayApplication):
             self.canvas.create_text(text_width / 2, offset + self.height_per_key / 2 - 1, fill=fill, font="Serif 11 bold", text=key)
 
     def update_scrolling_text(self, newtext):
+        # if draw_keyboard is False or not self.sv_y_offset.get().isdigit() or not self.sv_radius.get().isdigit():
+        if not self.t2 or not self.t3:
+            return
         # Todo: use self.kb_changingnote_notearr_idx to update the idx instead
         idx = 0
         counter = self.START_KEYPRESS_CHECKITER

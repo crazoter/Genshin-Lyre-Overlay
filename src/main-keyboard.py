@@ -19,12 +19,12 @@ class KeyboardApplication(Application):
     def __init__(self):
         super().__init__()
 
-        self.SECONDS_TO_START_ANIMATION = 10        # Number of seconds before we begin animating the circle
-        self.ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.SECONDS_TO_START_ANIMATION
-        self.DROP_RATE = 350 / self.ITERATIONS_UNTIL_ANIM_OVER                  # oops magic numbers; this is based on hardcoded height
-
+        self.KB_SECONDS_TO_START_ANIMATION = 10        # Number of seconds before we begin animating the circle
+        self.KB_ITERATIONS_UNTIL_ANIM_OVER = self.FPS * self.KB_SECONDS_TO_START_ANIMATION
+        # oops magic numbers; this is based on hardcoded height
+        self.KB_DROP_RATE = 350 / self.KB_ITERATIONS_UNTIL_ANIM_OVER                  
         self.songspeed = 1
-        self.drop_rate = 0
+        # self.kB_drop_rate = 0
 
         # create the string values for the entries that invoke an event after being changed
         self.sv_speed = StringVar(self.root, value="1")
@@ -97,13 +97,13 @@ class KeyboardApplication(Application):
             x1, y1, x2, y2 = coords
             # Update using expansion rate
             self.canvas.coords(obj, 
-                x1, y1 + self.DROP_RATE, 
-                x2, y2 + self.DROP_RATE)
+                x1, y1 + self.KB_DROP_RATE, 
+                x2, y2 + self.KB_DROP_RATE)
         else:
             # Text only have 2 coordinates
             x, y = coords
             # Update using expansion rate
-            self.canvas.coords(obj, x, y + self.DROP_RATE)
+            self.canvas.coords(obj, x, y + self.KB_DROP_RATE)
         self.notes_in_animation[i] = (iterations + 1, obj)
 
 if __name__ == "__main__":

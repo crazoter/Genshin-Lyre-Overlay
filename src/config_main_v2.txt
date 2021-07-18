@@ -1,5 +1,5 @@
-filename: music/shop_simple.midi.txt
-geom: 1602x896+151+71
+filename: music/zhongli.midi.txt
+geom: 1538x837+151+71
 root_state: normal
 radius: 45
 x_spacing: 94

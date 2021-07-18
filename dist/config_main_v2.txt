@@ -1,0 +1,8 @@
+filename: music/zhongli.midi.txt
+geom: 1534x821+151+71
+root_state: normal
+radius: 45
+x_spacing: 94
+y_spacing: 67
+x_offset: 380
+y_offset: 515
